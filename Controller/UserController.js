@@ -1,5 +1,6 @@
 const userSchema = require("../Models/UserSchema");
 const productSchema = require("../Models/ProductSchema");
+// const userSchema = require("../Models/UserSchema");
 
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
@@ -17,9 +18,7 @@ const userLogin = async (req, res) => {
     }
 
     if (data.password === user.password) {
-      // const key = crypto.randomBytes(32).toString("hex");
       const key = process.env.SecretKey;
-      console.log(key);
       const token = jwt.sign(
         { userId: user._id, userName: user.userName },
         key,
@@ -59,9 +58,56 @@ const userProducts = async (req, res) => {
     res.status(200).send(data);
   } catch (error) {
     console.log(error);
-    res.status(404).send("No products");
+    res.status(404).send("No products found");
+  }
+};
+
+//show products by id
+
+const userProductById = async (req, res) => {
+  try {
+    const { name } = req.params;
+    const product = await productSchema.find({ title: name });
+    res.status(200).send(product);
+  } catch (error) {
+    console.log(error);
+    res.status(404).send("No item found");
+  }
+};
+
+//show products by category
+
+const userProductByCategory = async (req, res) => {
+  try {
+    const { categoryname } = req.params;
+    const products = await productSchema.find({
+      $or: [{ gender: categoryname }, { category: categoryname }],
+    });
+    res.status(201).send(products);
+  } catch (error) {
+    console.log(error);
+    res.send("Error");
+  }
+};
+
+//add to cart
+const addCartItems = async (req, res) => {
+  try {
+    const { userName } = req.params;
+    const { itemName } = req.body;
+    // await userSchema.updateOne()
+  } catch (error) {
+    console.log(error);
+    res.send("Error");
   }
 };
 
 //export modules
-module.exports = { userRegister, userLogin, userProducts };
+module.exports = {
+  userRegister,
+  userLogin,
+  userProducts,
+  userProductById,
+  userProductByCategory,
+  addCartItems,
+};

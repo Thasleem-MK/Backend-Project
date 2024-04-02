@@ -33,13 +33,16 @@ const userSchema = mongoose.Schema({
   },
   profileImg: String,
   accountCreatedDate: {
-    type:Date,
+    type: Date,
     default: Date.now(),
     immutable: true,
   },
-  wishList: [],
-  cart: [],
-  orders: [],
+  wishList: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ProductData",
+  }],
+  cart: Array,
+  orders: Array,
 });
 // userSchema.pre({})
 module.exports = mongoose.model("UserDatas", userSchema);
