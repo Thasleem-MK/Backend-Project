@@ -1,6 +1,8 @@
 const adminSchema = require("../Models/AdminSchema");
 
+// Admin login
 const getAdmin = async (req, res) => {
+  console.log("helli",req.body.name)
   try {
     const data = req.body;
     console.log(data);
@@ -15,6 +17,8 @@ const getAdmin = async (req, res) => {
   }
 };
 
+
+//Admin Signup
 const postAdmin = async (req, res) => {
   try {
     const data = req.body;
@@ -31,6 +35,8 @@ const postAdmin = async (req, res) => {
   }
 };
 
+
+//Delete Admin
 const deleteAdmin = async (req, res) => {
   try {
     const data = req.body;

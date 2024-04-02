@@ -1,16 +1,20 @@
 const mongoose = require("mongoose");
 
 const productSchema = mongoose.Schema({
-  name: {
+  title: {
     type: String,
     unique: true,
     required: true,
+  },
+  description: {
+    type: String,
+    default: "",
   },
   gender: {
     type: String,
     required: true,
   },
-  type: {
+  category: {
     type: String,
     required: true,
   },
@@ -20,7 +24,8 @@ const productSchema = mongoose.Schema({
   },
   image: {
     type: String,
+    required: true,
   },
 });
 
-module.exports = mongoose.model("productData", productSchema);
+module.exports = mongoose.model("ProductData", productSchema);

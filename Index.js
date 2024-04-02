@@ -1,14 +1,23 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const route = require("./Routes/Admin");
+const usersRoute = require("./Routes/User");
+const adminRoute = require("./Routes/Admin");
 const dbConnect = require("./config/dbConnection");
 const cors = require("cors");
+const dotenv = require("dotenv");
+const cookie_Parser = require("cookie-parser");
 
 const app = express();
 
+dotenv.config({ path: "./config/.env" });
+
 app.use(express.json());
-app.use(route);
-app.use(cors({origin:"http://localhost:3000"}));
+app.use(cookie_Parser());
+
+app.use("/api", adminRoute);
+app.use("/api", usersRoute);
+
+app.use(cors());
 
 dbConnect();
 

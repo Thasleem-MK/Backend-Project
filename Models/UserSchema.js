@@ -1,20 +1,16 @@
 const mongoose = require("mongoose");
-const admingLoginSchema = mongoose.Schema({
-  name: {
+const userSchema = mongoose.Schema({
+  userName: {
     type: String,
-    required: true,
-  },
-  id: {
-    type: Number,
     unique: true,
     required: true,
-    maxLength: 8,
-    minLength: 8,
+    lowercase: true,
   },
   email: {
     type: String,
     unique: true,
     required: true,
+    lowercase: true,
     validate: {
       validator: function (value) {
         const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
@@ -35,6 +31,15 @@ const admingLoginSchema = mongoose.Schema({
         "Password should have 8 characters and contain atleast a letter and a digit ",
     },
   },
+  profileImg: String,
+  accountCreatedDate: {
+    type:Date,
+    default: Date.now(),
+    immutable: true,
+  },
+  wishList: [],
+  cart: [],
+  orders: [],
 });
-
-module.exports = mongoose.model("AdminDatas", admingLoginSchema);
+// userSchema.pre({})
+module.exports = mongoose.model("UserDatas", userSchema);
