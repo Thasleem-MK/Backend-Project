@@ -16,9 +16,12 @@ usersRoute.get(
   authentication,
   controller.userProductByCategory
 );
-
 usersRoute.post("/users/:userId/cart", authentication, controller.addCartItems);
-
 usersRoute.get("/users/:userId/cart", authentication, controller.readCart);
+usersRoute.post(
+  "/users/:id/wishlists",
+  authentication,
+  controller.addToWishList
+);
 
 module.exports = usersRoute;

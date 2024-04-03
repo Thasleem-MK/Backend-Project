@@ -27,7 +27,7 @@ const userLogin = async (req, res) => {
       );
       res.cookie("token", token);
       res.status(200).send("Loged in successfully");
-    }
+    } else res.send("Password incorrect");
   } catch (error) {
     console.log(error);
   }
@@ -53,7 +53,7 @@ const userRegister = async (req, res) => {
 
 const userProducts = async (req, res) => {
   try {
-    const data = await productSchema.find({},'-__v');
+    const data = await productSchema.find({}, "-__v");
     res.status(200).send(data);
   } catch (error) {
     console.log(error);
@@ -66,7 +66,7 @@ const userProducts = async (req, res) => {
 const userProductById = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await productSchema.findById(id,'-__v');
+    const product = await productSchema.findById(id, "-__v");
     res.status(200).send(product);
   } catch (error) {
     console.log(error);
@@ -79,9 +79,12 @@ const userProductById = async (req, res) => {
 const userProductByCategory = async (req, res) => {
   try {
     const { categoryname } = req.params;
-    const products = await productSchema.find({
-      $or: [{ gender: categoryname }, { category: categoryname }],
-    },'-__v');
+    const products = await productSchema.find(
+      {
+        $or: [{ gender: categoryname }, { category: categoryname }],
+      },
+      "-__v"
+    );
     res.status(201).send(products);
   } catch (error) {
     console.log(error);
@@ -142,6 +145,38 @@ const readCart = async (req, res) => {
   }
 };
 
+//Add to wishList
+
+const addToWishList = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { productId } = req.body;
+    const { token } = req.cookies;
+    const { userId } = jwt.verify(token, process.env.SecretKey);
+    // console.log(
+    //   `Product ID ${productId} token: ${token}  userID: ${userId}  id:${id}`
+    // );
+    if (id === userId) {
+      const user = await userSchema.findById(userId);
+      const productIndex = await user.wishList.findIndex(
+        (item) => item.product.toString() === productId
+      );
+      if (productIndex !== -1) {
+        res.send("Product is already exist in your wishList");
+      } else {
+        user.wishList.push({ product: productId });
+        await user.save();
+        res.send("Product added to your wishlist");
+      }
+    } else {
+      res.send("The given userId is wrong");
+    }
+  } catch (error) {
+    console.log(error);
+    res.send("Error");
+  }
+};
+
 //export modules
 module.exports = {
   userRegister,
@@ -151,4 +186,5 @@ module.exports = {
   userProductByCategory,
   addCartItems,
   readCart,
+  addToWishList,
 };
