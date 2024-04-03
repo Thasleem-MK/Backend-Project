@@ -23,5 +23,6 @@ usersRoute.post(
   authentication,
   controller.addToWishList
 );
+usersRoute.get("/users/:id/wishlists", authentication, controller.readWishList);
 
 module.exports = usersRoute;

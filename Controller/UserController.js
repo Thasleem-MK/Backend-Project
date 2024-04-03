@@ -134,7 +134,6 @@ const readCart = async (req, res) => {
     const decode = jwt.verify(token, process.env.SecretKey);
     if (userId === decode.userId) {
       const user = await userSchema.findById(userId).populate("cart.product");
-      // console.log(user.cart);
       res.json(user.cart);
     } else {
       res.send("Something went wrong");
@@ -153,9 +152,6 @@ const addToWishList = async (req, res) => {
     const { productId } = req.body;
     const { token } = req.cookies;
     const { userId } = jwt.verify(token, process.env.SecretKey);
-    // console.log(
-    //   `Product ID ${productId} token: ${token}  userID: ${userId}  id:${id}`
-    // );
     if (id === userId) {
       const user = await userSchema.findById(userId);
       const productIndex = await user.wishList.findIndex(
@@ -177,6 +173,25 @@ const addToWishList = async (req, res) => {
   }
 };
 
+//Get the wishlist of user
+
+const readWishList = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { token } = req.cookies;
+    const { userId } = jwt.verify(token, process.env.SecretKey);
+    if (id === userId) {
+      const user = await userSchema.findById(id).populate("wishList.product");
+      res.json(user.wishList);
+    } else {
+      res.send("Something went wrong");
+    }
+  } catch (error) {
+    console.log(error);
+    res.send("Error");
+  }
+};
+
 //export modules
 module.exports = {
   userRegister,
@@ -187,4 +202,5 @@ module.exports = {
   addCartItems,
   readCart,
   addToWishList,
+  readWishList,
 };
