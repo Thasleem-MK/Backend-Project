@@ -37,12 +37,38 @@ const userSchema = mongoose.Schema({
     default: Date.now(),
     immutable: true,
   },
-  wishList: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "ProductData",
-  }],
-  cart: Array,
-  orders: Array,
+  wishList: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ProductData",
+    },
+  ],
+  cart: [
+    {
+      product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ProductData",
+      },
+      quantity: {
+        type: Number,
+        default: 1,
+      },
+    },
+  ],
+  orders: [
+    {
+      product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ProductData",
+        required: true,
+      },
+      date: {
+        type: Date,
+        default: Date.now(),
+        immutable: true,
+      },
+    },
+  ],
 });
-// userSchema.pre({})
+
 module.exports = mongoose.model("UserDatas", userSchema);

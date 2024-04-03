@@ -3,6 +3,7 @@ const productSchema = require("../Models/ProductSchema");
 const addProduct = async (req, res) => {
   try {
     const data = req.body;
+    console.log(data);
     await productSchema.create({
       title: data.title,
       ...(data.description && { description: data.description }),

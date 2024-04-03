@@ -4,6 +4,7 @@ const userSchema = require("../Models/UserSchema");
 const authentication = async (req, res, next) => {
   try {
     const { token } = req.cookies;
+    console.log("token" + token);
 
     if (!token) {
       return res.status(500).send("Please login..");

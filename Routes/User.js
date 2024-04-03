@@ -7,7 +7,7 @@ usersRoute.post("/users/register", controller.userRegister);
 usersRoute.post("/users/login", controller.userLogin);
 usersRoute.get("/users/products", authentication, controller.userProducts);
 usersRoute.get(
-  "/users/products/:name",
+  "/users/products/:id",
   authentication,
   controller.userProductById
 );
@@ -17,10 +17,8 @@ usersRoute.get(
   controller.userProductByCategory
 );
 
-usersRoute.post(
-  "/users/:userName/cart",
-  authentication,
-  controller.addCartItems
-);
+usersRoute.post("/users/:userId/cart", authentication, controller.addCartItems);
+
+usersRoute.get("/users/:userId/cart", authentication, controller.readCart);
 
 module.exports = usersRoute;

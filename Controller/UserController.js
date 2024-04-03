@@ -1,6 +1,5 @@
 const userSchema = require("../Models/UserSchema");
 const productSchema = require("../Models/ProductSchema");
-// const userSchema = require("../Models/UserSchema");
 
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
@@ -54,7 +53,7 @@ const userRegister = async (req, res) => {
 
 const userProducts = async (req, res) => {
   try {
-    const data = await productSchema.find();
+    const data = await productSchema.find({},'-__v');
     res.status(200).send(data);
   } catch (error) {
     console.log(error);
@@ -66,8 +65,8 @@ const userProducts = async (req, res) => {
 
 const userProductById = async (req, res) => {
   try {
-    const { name } = req.params;
-    const product = await productSchema.find({ title: name });
+    const { id } = req.params;
+    const product = await productSchema.findById(id,'-__v');
     res.status(200).send(product);
   } catch (error) {
     console.log(error);
@@ -82,7 +81,7 @@ const userProductByCategory = async (req, res) => {
     const { categoryname } = req.params;
     const products = await productSchema.find({
       $or: [{ gender: categoryname }, { category: categoryname }],
-    });
+    },'-__v');
     res.status(201).send(products);
   } catch (error) {
     console.log(error);
@@ -93,12 +92,53 @@ const userProductByCategory = async (req, res) => {
 //add to cart
 const addCartItems = async (req, res) => {
   try {
-    const { userName } = req.params;
-    const { itemName } = req.body;
-    // await userSchema.updateOne()
+    const { userId } = req.params;
+    const { productId } = req.body;
+    const { token } = req.cookies;
+    const decode = jwt.verify(token, process.env.SecretKey);
+    console.log(`${decode.userId}`);
+
+    if (userId == decode.userId) {
+      const user = await userSchema.findById(userId);
+      const productIndex = await user.cart.findIndex(
+        (item) => item.product.toString() === productId
+      );
+
+      if (productIndex !== -1) {
+        user.cart[productIndex].quantity += 1;
+      } else {
+        user.cart.push({ product: productId });
+      }
+      await user.save();
+
+      res.send("Product add to cart successfully");
+    } else {
+      res.send("User ID mismatch");
+    }
   } catch (error) {
     console.log(error);
     res.send("Error");
+  }
+};
+
+//Read the cart
+
+const readCart = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { token } = req.cookies;
+    console.log(userId);
+    const decode = jwt.verify(token, process.env.SecretKey);
+    if (userId === decode.userId) {
+      const user = await userSchema.findById(userId).populate("cart.product");
+      // console.log(user.cart);
+      res.json(user.cart);
+    } else {
+      res.send("Something went wrong");
+    }
+  } catch (error) {
+    console.log(error);
+    res.send("Server error");
   }
 };
 
@@ -110,4 +150,5 @@ module.exports = {
   userProductById,
   userProductByCategory,
   addCartItems,
+  readCart,
 };
