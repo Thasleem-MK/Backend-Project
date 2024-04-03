@@ -24,5 +24,10 @@ usersRoute.post(
   controller.addToWishList
 );
 usersRoute.get("/users/:id/wishlists", authentication, controller.readWishList);
+usersRoute.delete(
+  "/users/:id/wishlists",
+  authentication,
+  controller.deleteWishItem
+);
 
 module.exports = usersRoute;

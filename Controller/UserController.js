@@ -192,6 +192,36 @@ const readWishList = async (req, res) => {
   }
 };
 
+//delete products from wishlist
+
+const deleteWishItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { productId } = req.body;
+    const { token } = req.cookies;
+    const { userId } = jwt.verify(token, process.env.SecretKey);
+    console.log(userId);
+    if (id === userId) {
+      const user = await userSchema.findById(id);
+      const productIndex = await user.wishList.findIndex((item) => {
+        return item.product.toString() === productId;
+      });
+      if (productIndex !== -1) {
+        user.wishList.splice(productIndex, 1);
+        user.save();
+        res.send("The specific item removed from wishlist");
+      }else{
+        res.send("Item not found in your wishlist")
+      }
+    } else {
+      res.send("Somthing went wrong");
+    }
+  } catch (error) {
+    console.log(error);
+    res.send("Error");
+  }
+};
+
 //export modules
 module.exports = {
   userRegister,
@@ -203,4 +233,5 @@ module.exports = {
   readCart,
   addToWishList,
   readWishList,
+  deleteWishItem,
 };
