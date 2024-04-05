@@ -1,8 +1,8 @@
 const userSchema = require("../Models/UserSchema");
 const productSchema = require("../Models/ProductSchema");
+const bcrypt = require("bcryptjs");
 
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
 
 //user Login
 const userLogin = async (req, res) => {
@@ -11,12 +11,11 @@ const userLogin = async (req, res) => {
     const user = await userSchema.findOne({
       $or: [{ userName: data.userId }, { email: data.userId }],
     });
-    console.log(user);
     if (!user) {
       return res.status(404).send("User not exist!");
     }
-
-    if (data.password === user.password) {
+    const isPasswordMatch = await bcrypt.compare(data.password, user.password);
+    if (isPasswordMatch) {
       const key = process.env.SecretKey;
       const token = jwt.sign(
         { userId: user._id, userName: user.userName },
@@ -37,15 +36,23 @@ const userLogin = async (req, res) => {
 const userRegister = async (req, res) => {
   try {
     const data = req.body;
-    await userSchema.create({
-      userName: data.userName,
-      email: data.email,
-      password: data.password,
-    });
-    res.send("You are registered");
+    const regex = new RegExp(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/);
+    if (regex.test(data.password) == true) {
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+      await userSchema.create({
+        userName: data.userName,
+        email: data.email,
+        password: hashedPassword,
+      });
+      res.send("You are registered");
+    } else {
+      return res.send(
+        "Password should have 8 characters and contain atleast a letter and a digit"
+      );
+    }
   } catch (error) {
     console.log(error);
-    res.send("The given data is already exist !! ");
+    res.send("The given data either existed or incomplete !! ");
   }
 };
 
@@ -210,8 +217,8 @@ const deleteWishItem = async (req, res) => {
         user.wishList.splice(productIndex, 1);
         user.save();
         res.send("The specific item removed from wishlist");
-      }else{
-        res.send("Item not found in your wishlist")
+      } else {
+        res.send("Item not found in your wishlist");
       }
     } else {
       res.send("Somthing went wrong");

@@ -22,14 +22,6 @@ const userSchema = mongoose.Schema({
   password: {
     type: String,
     required: true,
-    validate: {
-      validator: function (value) {
-        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-        return passwordRegex.test(value);
-      },
-      message:
-        "Password should have 8 characters and contain atleast a letter and a digit ",
-    },
   },
   profileImg: String,
   accountCreatedDate: {
