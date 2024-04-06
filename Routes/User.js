@@ -1,10 +1,12 @@
 const express = require("express");
 const usersRoute = express.Router();
 const controller = require("../Controller/UserController");
+const reg_logController=require("../Controller/userReg-Login")
 const authentication = require("../Middlewares/auth");
+const { trycatch } = require("../utils/tryCatch");
 
-usersRoute.post("/users/register", controller.userRegister);
-usersRoute.post("/users/login", controller.userLogin);
+usersRoute.post("/users/register",trycatch(reg_logController.userRegister) );
+// usersRoute.post("/users/login", controller.userLogin);
 usersRoute.get("/users/products", authentication, controller.userProducts);
 usersRoute.get(
   "/users/products/:id",

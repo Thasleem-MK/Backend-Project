@@ -4,58 +4,6 @@ const bcrypt = require("bcryptjs");
 
 const jwt = require("jsonwebtoken");
 
-//user Login
-const userLogin = async (req, res) => {
-  try {
-    const data = req.body;
-    const user = await userSchema.findOne({
-      $or: [{ userName: data.userId }, { email: data.userId }],
-    });
-    if (!user) {
-      return res.status(404).send("User not exist!");
-    }
-    const isPasswordMatch = await bcrypt.compare(data.password, user.password);
-    if (isPasswordMatch) {
-      const key = process.env.SecretKey;
-      const token = jwt.sign(
-        { userId: user._id, userName: user.userName },
-        key,
-        {
-          expiresIn: "1h",
-        }
-      );
-      res.cookie("token", token);
-      res.status(200).send("Loged in successfully");
-    } else res.send("Password incorrect");
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-//user registeration
-const userRegister = async (req, res) => {
-  try {
-    const data = req.body;
-    const regex = new RegExp(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/);
-    if (regex.test(data.password) == true) {
-      const hashedPassword = await bcrypt.hash(data.password, 10);
-      await userSchema.create({
-        userName: data.userName,
-        email: data.email,
-        password: hashedPassword,
-      });
-      res.send("You are registered");
-    } else {
-      return res.send(
-        "Password should have 8 characters and contain atleast a letter and a digit"
-      );
-    }
-  } catch (error) {
-    console.log(error);
-    res.send("The given data either existed or incomplete !! ");
-  }
-};
-
 //show products to users
 
 const userProducts = async (req, res) => {
@@ -231,8 +179,8 @@ const deleteWishItem = async (req, res) => {
 
 //export modules
 module.exports = {
-  userRegister,
-  userLogin,
+  // userRegister,
+  // userLogin,
   userProducts,
   userProductById,
   userProductByCategory,

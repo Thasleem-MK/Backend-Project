@@ -54,7 +54,7 @@ const postAdmin = async (req, res) => {
     const { username, email, password } = req.body;
 
     const newAdmin = { username: username, email: email, password: password };
-    const validate = await joiSchema.validate(joiSchema);
+    const validate = await joiSchema.validate(newAdmin);
     if (validate.error) {
       return res.status(401).json({});
     } else {
