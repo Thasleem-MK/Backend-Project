@@ -1,7 +1,8 @@
 const userSchema = require("../Models/UserSchema");
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken')
-const joi = require('joi')
+const jwt = require('jsonwebtoken');
+const joi = require('joi');
+const createError = require('http-errors');
 
 // ......................User Registeration............................
 
@@ -22,7 +23,11 @@ const userRegister = async (req, res) => {
     password: req.body.password,
   }
   const validate = await joiSchema.validate(data);
-  if (validate.error) { throw new Error(validate.error) };
+  if (validate.error) {
+    throw new createError.Unauthorized(
+      "Password should contain 8 characters of letters and numbers"
+    )
+  };
   const hashedPassword = await bcrypt.hash(data.password, 10);
   await userSchema.create({
     userName: data.userName,
@@ -41,10 +46,10 @@ const userLogin = async (req, res) => {
     $or: [{ userName: data.userId }, { email: data.userId }],
   });
   if (!user) {
-    throw new notFoundError("User not found!!");
+    throw new createError.NotFound("User not found!!");
   }
   const isPasswordMatch = await bcrypt.compare(data.password, user.password);
-  if (!isPasswordMatch) { throw new Error("Password mismatch") }
+  if (!isPasswordMatch) { throw new createError.BadRequest("Password mismatch") }
   const key = process.env.SecretKey;
   const token = jwt.sign(
     { userId: user._id, userName: user.userName },
