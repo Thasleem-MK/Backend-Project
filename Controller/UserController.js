@@ -70,10 +70,11 @@ const addCartItems = async (req, res) => {
 
 //................ Read the cart .............................
 const readCart = async (req, res) => {
+  console.log("Read cart");
   const { token } = req.cookies;
   const decode = jwt.verify(token, process.env.SecretKey);
   const user = await cartSchema.findOne({ userId: decode.userId }).populate("cart.product");
-  if (!user || !user.cart.length) {
+  if (!user || user.cart.length === 0) {
     return res.status(200).json({ message: "No item in your cart" });
   }
   return res.status(200).json(user.cart);
@@ -139,6 +140,39 @@ const deleteWishItem = async (req, res) => {
 
 };
 
+//............ Order Cart item ................
+const orderCart = async (req, res) => {
+  const { token } = req.cookies;
+  const { userId } = jwt.verify(token, process.env.SecretKey);
+  const data = await cartSchema.findOne({ userId: userId }, "-__v -_id -userId");
+  if (data.cart === 0) { return res.status(200).json({ message: "No item in your cart" }) };
+
+  const newOrder = new orderSchema({ userId: userId });
+
+  for (const element of data.cart) {
+    newOrder.products.push({ productId: element.product, quantity: element.quantity });
+  }
+
+  await newOrder.save();
+
+  // Empty the cart after order completion
+  await cartSchema.findOneAndUpdate({ userId: userId }, { $set: { cart: [] } });
+
+  //calculate total amount and item
+  let totalPrice = 0;
+  let totalItems = 0;
+  for (const item of newOrder.products) {
+    const product = await productSchema.findById(item.productId);
+    totalPrice += product.price * item.quantity;
+    totalItems += item.quantity;
+  }
+  newOrder.totalPrice = totalPrice;
+  newOrder.totalItems = totalItems;
+  await newOrder.save();
+
+  return res.status(200).send("Purchase completed");
+}
+
 //export modules
 module.exports = {
   userProducts,
@@ -149,4 +183,5 @@ module.exports = {
   addToWishList,
   readWishList,
   deleteWishItem,
+  orderCart,
 };

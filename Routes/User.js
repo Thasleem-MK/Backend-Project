@@ -31,5 +31,6 @@ usersRoute.delete(
   authentication,
   trycatch(controller.deleteWishItem)
 );
+usersRoute.post("/users/orders", authentication, trycatch(controller.orderCart));
 
 module.exports = usersRoute;
