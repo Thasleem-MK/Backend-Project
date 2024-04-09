@@ -72,96 +72,75 @@ const addCartItems = async (req, res) => {
 const readCart = async (req, res) => {
   const { token } = req.cookies;
   const decode = jwt.verify(token, process.env.SecretKey);
-  const user = await cartSchema.findOne({ userId: decode.userId });
-  if (!user) {
-    console.log("dklsfj");
+  const user = await cartSchema.findOne({ userId: decode.userId }).populate("cart.product");
+  if (!user || !user.cart.length) {
     return res.status(200).json({ message: "No item in your cart" });
-
   }
-  res.status(200).json(user.cart);
+  return res.status(200).json(user.cart);
 };
 
 //............. Add to wishList ....................
 const addToWishList = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { productId } = req.body;
-    const { token } = req.cookies;
-    const { userId } = jwt.verify(token, process.env.SecretKey);
-    if (id === userId) {
-      const user = await userSchema.findById(userId);
-      const productIndex = await user.wishList.findIndex(
-        (item) => item.product.toString() === productId
-      );
-      if (productIndex !== -1) {
-        res.send("Product is already exist in your wishList");
-      } else {
-        user.wishList.push({ product: productId });
-        await user.save();
-        res.send("Product added to your wishlist");
-      }
-    } else {
-      res.send("The given userId is wrong");
-    }
-  } catch (error) {
-    console.log(error);
-    res.send("Error");
+  const { productId } = req.body;
+  const { token } = req.cookies;
+  const { userId } = jwt.verify(token, process.env.SecretKey);
+
+  const user = await wishlistSchema.findOne({ userId: userId });
+  if (!user) {
+    const newWishList = new wishlistSchema({
+      userId: userId,
+      wishList: [{ product: productId }]
+    })
+    await newWishList.save();
+    return res.status(200).send("Product add to wishList successfully");
+  }
+  const productIndex = await user.wishList.findIndex(
+    (item) => item.product.toString() === productId
+  );
+  if (productIndex !== -1) {
+    throw new createError.BadRequest("Product is already exist in your wishList");
+  } else {
+    user.wishList.push({ product: productId });
+    await user.save();
+    return res.status(200).send("Product added to your wishlist");
   }
 };
 
-//Get the wishlist of user
-
+//.............. Get the wishlist of user ..................
 const readWishList = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { token } = req.cookies;
-    const { userId } = jwt.verify(token, process.env.SecretKey);
-    if (id === userId) {
-      const user = await userSchema.findById(id).populate("wishList.product");
-      res.json(user.wishList);
-    } else {
-      res.send("Something went wrong");
-    }
-  } catch (error) {
-    console.log(error);
-    res.send("Error");
+  const { token } = req.cookies;
+  const { userId } = jwt.verify(token, process.env.SecretKey);
+  const user = await wishlistSchema.findOne({ userId: userId }).populate("wishList.product");
+  if (!user || !user.wishList.length) {
+    return res.status(200).json({ message: "No item in your wish list" });
   }
+  res.json(user.wishList);
 };
 
-//delete products from wishlist
-
+//..........delete products from wishlist..............
 const deleteWishItem = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { productId } = req.body;
-    const { token } = req.cookies;
-    const { userId } = jwt.verify(token, process.env.SecretKey);
-    console.log(userId);
-    if (id === userId) {
-      const user = await userSchema.findById(id);
-      const productIndex = await user.wishList.findIndex((item) => {
-        return item.product.toString() === productId;
-      });
-      if (productIndex !== -1) {
-        user.wishList.splice(productIndex, 1);
-        user.save();
-        res.send("The specific item removed from wishlist");
-      } else {
-        res.send("Item not found in your wishlist");
-      }
-    } else {
-      res.send("Somthing went wrong");
-    }
-  } catch (error) {
-    console.log(error);
-    res.send("Error");
+  const { productId } = req.body;
+  const { token } = req.cookies;
+  const { userId } = jwt.verify(token, process.env.SecretKey);
+  const user = await wishlistSchema.findOne({ userId: userId });
+  if (!user) {
+    throw new createError.NotFound("Item not found in your wishlist");
   }
+  const productIndex = await user.wishList.findIndex((item) => {
+    return item.product.toString() === productId;
+  });
+  if (productIndex !== -1) {
+    user.wishList.splice(productIndex, 1);
+    await user.save();
+    res.status(200).send("The specific item removed from wishlist");
+  } else {
+    throw new createError.NotFound("Item not found in your wishlist");
+  }
+
 };
 
 //export modules
 module.exports = {
-  // userRegister,
-  // userLogin,
   userProducts,
   userProductById,
   userProductByCategory,

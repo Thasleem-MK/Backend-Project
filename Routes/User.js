@@ -21,13 +21,13 @@ usersRoute.get(
 usersRoute.post("/users/cart", authentication, trycatch(controller.addCartItems));
 usersRoute.get("/users/cart", authentication, trycatch(controller.readCart));
 usersRoute.post(
-  "/users/:id/wishlists",
+  "/users/wishlists",
   authentication,
   trycatch(controller.addToWishList)
 );
-usersRoute.get("/users/:id/wishlists", authentication, trycatch(controller.readWishList));
+usersRoute.get("/users/wishlists", authentication, trycatch(controller.readWishList));
 usersRoute.delete(
-  "/users/:id/wishlists",
+  "/users/wishlists",
   authentication,
   trycatch(controller.deleteWishItem)
 );
