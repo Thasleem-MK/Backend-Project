@@ -7,29 +7,29 @@ const { trycatch } = require("../utils/tryCatch");
 
 usersRoute.post("/users/register", trycatch(reg_logController.userRegister));
 usersRoute.post("/users/login", trycatch(reg_logController.userLogin));
-usersRoute.get("/users/products", authentication, controller.userProducts);
+usersRoute.get("/users/products", authentication, trycatch(controller.userProducts));
 usersRoute.get(
   "/users/products/:id",
   authentication,
-  controller.userProductById
+  trycatch(controller.userProductById)
 );
 usersRoute.get(
   "/users/products/category/:categoryname",
   authentication,
-  controller.userProductByCategory
+  trycatch(controller.userProductByCategory)
 );
-usersRoute.post("/users/:userId/cart", authentication, controller.addCartItems);
-usersRoute.get("/users/:userId/cart", authentication, controller.readCart);
+usersRoute.post("/users/cart", authentication, trycatch(controller.addCartItems));
+usersRoute.get("/users/cart", authentication, trycatch(controller.readCart));
 usersRoute.post(
   "/users/:id/wishlists",
   authentication,
-  controller.addToWishList
+  trycatch(controller.addToWishList)
 );
-usersRoute.get("/users/:id/wishlists", authentication, controller.readWishList);
+usersRoute.get("/users/:id/wishlists", authentication, trycatch(controller.readWishList));
 usersRoute.delete(
   "/users/:id/wishlists",
   authentication,
-  controller.deleteWishItem
+  trycatch(controller.deleteWishItem)
 );
 
 module.exports = usersRoute;

@@ -1,106 +1,87 @@
 const userSchema = require("../Models/UserSchema");
 const productSchema = require("../Models/ProductSchema");
-const bcrypt = require("bcryptjs");
-
+const cartSchema = require('../Models/cartSchema');
+const wishlistSchema = require('../Models/wishlistSchema');
+const orderSchema = require('../Models/ordersSchema');
 const jwt = require("jsonwebtoken");
+const createError = require('http-errors');
 
-//show products to users
-
+//............ show products to users ...............
 const userProducts = async (req, res) => {
-  try {
-    const data = await productSchema.find({}, "-__v");
-    res.status(200).send(data);
-  } catch (error) {
-    console.log(error);
-    res.status(404).send("No products found");
-  }
+  const data = await productSchema.find({}, "-__v");
+  if (!data) throw new createError.NotFound("No product in store")
+  res.status(200).send(data);
 };
 
-//show products by id
-
+//............... show products by id ....................
 const userProductById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const product = await productSchema.findById(id, "-__v");
-    res.status(200).send(product);
-  } catch (error) {
-    console.log(error);
-    res.status(404).send("No item found");
+  const { id } = req.params;
+  if (!await productSchema.findById(id)) {
+    throw new createError.NotFound("No product in given id");
   }
+  const product = await productSchema.findById(id, "-__v");
+  res.status(200).send(product);
 };
 
-//show products by category
-
+//............... show products by category ..................
 const userProductByCategory = async (req, res) => {
-  try {
-    const { categoryname } = req.params;
-    const products = await productSchema.find(
-      {
-        $or: [{ gender: categoryname }, { category: categoryname }],
-      },
-      "-__v"
-    );
-    res.status(201).send(products);
-  } catch (error) {
-    console.log(error);
-    res.send("Error");
+  const { categoryname } = req.params;
+  const products = await productSchema.find(
+    {
+      $or: [{ gender: categoryname }, { category: categoryname }],
+    },
+    "-__v"
+  );
+  if (products.length === 0) {
+    throw new createError.NotFound("No item in the given category");
   }
+  res.status(200).send(products);
 };
 
-//add to cart
+
+//................ add to cart ........................
 const addCartItems = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { productId } = req.body;
-    const { token } = req.cookies;
-    const decode = jwt.verify(token, process.env.SecretKey);
-    console.log(`${decode.userId}`);
+  const { productId } = req.body;
+  const { token } = req.cookies;
+  const decode = jwt.verify(token, process.env.SecretKey);
 
-    if (userId == decode.userId) {
-      const user = await userSchema.findById(userId);
-      const productIndex = await user.cart.findIndex(
-        (item) => item.product.toString() === productId
-      );
+  const user = await cartSchema.findOne({ userId: decode.userId });
 
-      if (productIndex !== -1) {
-        user.cart[productIndex].quantity += 1;
-      } else {
-        user.cart.push({ product: productId });
-      }
-      await user.save();
-
-      res.send("Product add to cart successfully");
-    } else {
-      res.send("User ID mismatch");
-    }
-  } catch (error) {
-    console.log(error);
-    res.send("Error");
+  if (!user) {
+    const newCart = new cartSchema({
+      userId: decode.userId,
+      cart: [{ product: productId }]
+    })
+    await newCart.save();
+    return res.status(200).send("Product add to cart successfully");
   }
+
+  const productIndex = await user.cart.findIndex(
+    (item) => item.product.toString() === productId
+  );
+  if (productIndex !== -1) {
+    user.cart[productIndex].quantity += 1;
+  } else {
+    user.cart.push({ product: productId });
+  }
+  await user.save();
+  res.status(200).send("Product add to cart successfully");
 };
 
-//Read the cart
-
+//................ Read the cart .............................
 const readCart = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { token } = req.cookies;
-    console.log(userId);
-    const decode = jwt.verify(token, process.env.SecretKey);
-    if (userId === decode.userId) {
-      const user = await userSchema.findById(userId).populate("cart.product");
-      res.json(user.cart);
-    } else {
-      res.send("Something went wrong");
-    }
-  } catch (error) {
-    console.log(error);
-    res.send("Server error");
+  const { token } = req.cookies;
+  const decode = jwt.verify(token, process.env.SecretKey);
+  const user = await cartSchema.findOne({ userId: decode.userId });
+  if (!user) {
+    console.log("dklsfj");
+    return res.status(200).json({ message: "No item in your cart" });
+
   }
+  res.status(200).json(user.cart);
 };
 
-//Add to wishList
-
+//............. Add to wishList ....................
 const addToWishList = async (req, res) => {
   try {
     const { id } = req.params;

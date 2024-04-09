@@ -9,25 +9,27 @@ const createError = require('http-errors');
 // => Joi validation
 
 const joiSchema = joi.object({
-  userName: joi.string().required().lowercase(),
+  userName: joi.string().required().lowercase().messages({
+    'string.empty': 'Username is required',
+    'string.pattern.base': 'Username must contain only letters and numbers',
+  }),
   email: joi.string().required().lowercase().email(),
-  password: joi.string().required().regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/),
+  password: joi.string().required().regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/).messages({
+    'string.empty': 'Password is required',
+    'string.pattern.base': 'Password should contain 8 characters of letters and numbers.No special characters allowed',
+  }),
 }).options({ abortEarly: false });
 
 // =>User Registeration
-
 const userRegister = async (req, res) => {
-  const data = {
-    userName: req.body.userName,
-    email: req.body.email,
-    password: req.body.password,
-  }
-  const validate = await joiSchema.validate(data);
-  if (validate.error) {
-    throw new createError.Unauthorized(
-      "Password should contain 8 characters of letters and numbers"
-    )
+  const data = req.body;
+
+  const validationResult = await joiSchema.validate(data);
+  if (validationResult.error) {
+    const errorMessage = validationResult.error.details[0].message;
+    throw new createError.Unauthorized(errorMessage);
   };
+
   const hashedPassword = await bcrypt.hash(data.password, 10);
   await userSchema.create({
     userName: data.userName,
@@ -35,8 +37,7 @@ const userRegister = async (req, res) => {
     password: hashedPassword,
   });
   res.send("You are registered");
-};
-
+}
 
 //................User Login................................
 

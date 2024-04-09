@@ -12,7 +12,7 @@ const app = express();
 
 dotenv.config({ path: "./config/.env" });
 
-app.use(errorHandler)
+
 app.use(express.json());
 app.use(cookie_Parser());
 
@@ -22,6 +22,8 @@ app.use("/api", usersRoute);
 app.use(cors());
 
 dbConnect();
+
+app.use(errorHandler)
 
 app.listen(7000, () =>
   console.log(`Server connected in the server Number : 7000`)
