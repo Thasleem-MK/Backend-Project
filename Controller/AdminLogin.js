@@ -22,24 +22,29 @@ const joiSchema = joi.object({
 //............Add new Admin...................
 const postAdmin = async (req, res) => {
     const token = req.cookies.token;
-    const decode = jwt.verify(token, process.env.AdminKey);
+    const decode = jwt.verify(token, process.env.SecretKey);
     if (decode.username !== process.env.AdminUserName || decode.email !== process.env.AdminEmail) {
         throw new createError.Unauthorized("Can't add new admin")
     }
     const { userName, email, password } = req.body;
-    const newAdmin = { username: userName, email: email, password: password };
-    const validate = await joiSchema.validate(newAdmin);
+    const adminDetails = { username: userName, email: email, password: password };
+    const validate = await joiSchema.validate(adminDetails);
     if (validate.error) {
         const errorMessage = validate.error.details[0].message;
         throw new createError.BadRequest(errorMessage);
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    await adminSchema.create({
+    const result = await adminSchema.create({
         username: userName,
         email: email,
         password: hashedPassword,
     });
-    res.status(201).send("New admin added");
+    if (result) {
+        res.status(201).send("New admin added");
+
+    } else {
+        res.status(400).json({ message: "error" })
+    }
 };
 
 //............... Admin login .........................
@@ -55,7 +60,7 @@ const getAdmin = async (req, res) => {
     if (!isPasswordMatch) { throw new createError.Unauthorized("Incorrect password. Please try again.") }
     const token = jwt.sign(
         { username: admin.username, email: admin.email },
-        process.env.AdminKey,
+        process.env.SecretKey,
         {
             expiresIn: "1h",
         }
@@ -66,30 +71,23 @@ const getAdmin = async (req, res) => {
         .json({ status: "success", message: "Logged in" });
 };
 
-//............... Delete Admin .................//
+//............... Delete Admin .................
 const deleteAdmin = async (req, res) => {
-    const data = req.body;
-    const status = await adminSchema.find({
-        id: data.id,
-        email: data.email,
-        password: data.password,
-    });
-    console.log(status);
-    if (status.length != 0) {
-        await adminSchema
-            .deleteOne({
-                id: data.id,
-                email: data.email,
-                password: data.password,
-            })
-            .then(() => res.send("Delete admin successfully"))
-            .catch((error) => {
-                console.log(error);
-                res.send("No admin found !!");
-            });
-    } else {
-        res.send("No admin found!!");
+    const token = req.cookies.token;
+    const decode = jwt.verify(token, process.env.SecretKey);
+    if (decode.username !== process.env.AdminUserName || decode.email !== process.env.AdminEmail) {
+        throw new createError.Unauthorized("Can't add new admin")
     }
+    const { userName, email } = req.body;
+    const admin = await adminSchema.findOneAndDelete({
+        username: userName,
+        email: email,
+    });
+    if (admin === null) {
+        throw new createError.NotFound("Admin not found");
+    }
+    return res.status(200).send("Admin deleted successfully");
 };
+
 
 module.exports = { getAdmin, postAdmin, deleteAdmin };

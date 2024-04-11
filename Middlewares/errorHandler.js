@@ -13,6 +13,10 @@ const errorHandler = (error, req, res, next) => {
     if (error.name === "JsonWebTokenError") {
         return res.status(401).json({ Error: 'Unauthorized: Invalid token..' })
     }
-    return res.send(error);
+    if (error.code === 11000) {
+        const keyName = Object.keys(error.keyValue)[0];
+        return res.json({ Error: `Given ${keyName} is already exist` })
+    }
+    return res.status(500).send(error);
 }
 module.exports = errorHandler;
