@@ -2,12 +2,19 @@ const express = require("express");
 const adminRoutes = express.Router();
 const { trycatch } = require('../utils/tryCatch');
 const controller = require("../Controller/AdminLogin");
-const authentication = require("../Middlewares/auth");
-const productController = require("../Controller/ProductCotroller");
+const { adminAuthentication } = require("../Middlewares/auth");
+const adminController = require('../Controller/AdminForm');
 
 adminRoutes.post("/admin/login", trycatch(controller.getAdmin));
-adminRoutes.post("/admin/register",authentication, trycatch(controller.postAdmin));
-adminRoutes.delete("/admin/delete",authentication, trycatch(controller.deleteAdmin));
+adminRoutes.post("/admin/register", adminAuthentication, trycatch(controller.postAdmin));
+adminRoutes.delete("/admin/delete", adminAuthentication, trycatch(controller.deleteAdmin));
+
+adminRoutes.get("/admin/users", adminAuthentication, trycatch(adminController.getUsers));
+adminRoutes.get("/admin/users/:id", adminAuthentication, trycatch(adminController.getUser));
+adminRoutes.get("/admin/products", adminAuthentication, trycatch(adminController.getProducts));
+adminRoutes.get("/admin/products/category", adminAuthentication, trycatch(adminController.getProductCategory));
+adminRoutes.get("/admin/products/:id", adminAuthentication, trycatch(adminController.getproduct));
+adminRoutes.post("/admin/products", adminAuthentication, trycatch(adminController.addProduct));
 
 //adminRoutes.post("/admin/products", productController.addProduct);
 

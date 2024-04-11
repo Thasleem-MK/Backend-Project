@@ -1,4 +1,3 @@
-//make in india 
 const adminSchema = require("../Models/AdminSchema");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -22,7 +21,7 @@ const joiSchema = joi.object({
 //............Add new Admin...................
 const postAdmin = async (req, res) => {
     const token = req.cookies.token;
-    const decode = jwt.verify(token, process.env.SecretKey);
+    const decode = jwt.verify(token, process.env.AdminKey);
     if (decode.username !== process.env.AdminUserName || decode.email !== process.env.AdminEmail) {
         throw new createError.Unauthorized("Can't add new admin")
     }
@@ -60,7 +59,7 @@ const getAdmin = async (req, res) => {
     if (!isPasswordMatch) { throw new createError.Unauthorized("Incorrect password. Please try again.") }
     const token = jwt.sign(
         { username: admin.username, email: admin.email },
-        process.env.SecretKey,
+        process.env.AdminKey,
         {
             expiresIn: "1h",
         }
@@ -74,7 +73,7 @@ const getAdmin = async (req, res) => {
 //............... Delete Admin .................
 const deleteAdmin = async (req, res) => {
     const token = req.cookies.token;
-    const decode = jwt.verify(token, process.env.SecretKey);
+    const decode = jwt.verify(token, process.env.AdminKey);
     if (decode.username !== process.env.AdminUserName || decode.email !== process.env.AdminEmail) {
         throw new createError.Unauthorized("Can't add new admin")
     }

@@ -1,9 +1,11 @@
 const jwt = require("jsonwebtoken");
 const userSchema = require("../Models/UserSchema");
+const adminSchema = require('../Models/AdminSchema');
 const createError = require('http-errors');
 const { trycatch } = require("../utils/tryCatch")
 
-const authentication = trycatch(async (req, res, next) => {
+//.............. User Authentication ........................
+const userAuthentication = trycatch(async (req, res, next) => {
   const { token } = req.cookies;
   if (!token) {
     throw new createError.Unauthorized("You have no token, Login please..")
@@ -13,8 +15,19 @@ const authentication = trycatch(async (req, res, next) => {
   if (!user) { throw new createError.Unauthorized("Invalid token") }
   console.log("Authenticated .")
   next();
-
-
 })
 
-module.exports = authentication;
+//.............. Admin Authentication ......................
+const adminAuthentication = trycatch(async (req, res, next) => {
+  const { token } = req.cookies;
+  if (!token) {
+    throw new createError.Unauthorized("You have no token, Login please..")
+  }
+  const decode = await jwt.verify(token, process.env.AdminKey);
+  const admin = await adminSchema.find({ username: decode.username });
+  if (!admin) { throw new createError.Unauthorized("Invalid token") }
+  console.log("Authenticated .")
+  next();
+})
+
+module.exports = { userAuthentication, adminAuthentication }

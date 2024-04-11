@@ -28,10 +28,14 @@ const userProductByCategory = async (req, res) => {
   const { categoryname } = req.params;
   const products = await productSchema.find(
     {
-      $or: [{ gender: categoryname }, { category: categoryname }],
+      $or: [
+        { gender: { $regex: new RegExp(category, "i") } },
+        { category: { $regex: new RegExp(category, "i") } }
+      ]
     },
     "-__v"
   );
+
   if (products.length === 0) {
     throw new createError.NotFound("No item in the given category");
   }

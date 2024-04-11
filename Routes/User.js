@@ -2,35 +2,35 @@ const express = require("express");
 const usersRoute = express.Router();
 const controller = require("../Controller/UserController");
 const reg_logController = require("../Controller/userReg-Login")
-const authentication = require("../Middlewares/auth");
+const {userAuthentication} = require("../Middlewares/auth");
 const { trycatch } = require("../utils/tryCatch");
 
 usersRoute.post("/users/register", trycatch(reg_logController.userRegister));
 usersRoute.post("/users/login", trycatch(reg_logController.userLogin));
-usersRoute.get("/users/products", authentication, trycatch(controller.userProducts));
+usersRoute.get("/users/products", userAuthentication, trycatch(controller.userProducts));
 usersRoute.get(
   "/users/products/:id",
-  authentication,
+  userAuthentication,
   trycatch(controller.userProductById)
 );
 usersRoute.get(
   "/users/products/category/:categoryname",
-  authentication,
+  userAuthentication,
   trycatch(controller.userProductByCategory)
 );
-usersRoute.post("/users/cart", authentication, trycatch(controller.addCartItems));
-usersRoute.get("/users/cart", authentication, trycatch(controller.readCart));
+usersRoute.post("/users/cart", userAuthentication, trycatch(controller.addCartItems));
+usersRoute.get("/users/cart", userAuthentication, trycatch(controller.readCart));
 usersRoute.post(
   "/users/wishlists",
-  authentication,
+  userAuthentication,
   trycatch(controller.addToWishList)
 );
-usersRoute.get("/users/wishlists", authentication, trycatch(controller.readWishList));
+usersRoute.get("/users/wishlists", userAuthentication, trycatch(controller.readWishList));
 usersRoute.delete(
   "/users/wishlists",
-  authentication,
+  userAuthentication,
   trycatch(controller.deleteWishItem)
 );
-usersRoute.post("/users/orders", authentication, trycatch(controller.orderCart));
+usersRoute.post("/users/orders", userAuthentication, trycatch(controller.orderCart));
 
 module.exports = usersRoute;

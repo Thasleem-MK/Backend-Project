@@ -1,104 +1,103 @@
-const adminSchema = require("../Models/AdminSchema");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const joi = require("joi");
+const productSchema = require('../Models/ProductSchema');
+const userSchema = require('../Models/UserSchema');
+const createError = require('http-errors');
+const joi = require('joi')
 
-// Joi validation for admin registeration
-const joiSchema = joi
-  .object({
-    username: joi.string().required().alphanum(),
-    email: joi.string().required().email(),
-    password: joi
-      .string()
-      .required()
-      .regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/),
+//.......... Joi validation ...........
+const joiSchema = joi.object({
+  title: joi.string().required().messages({
+    'string.empty': 'Title is required',
+    'any.required': 'Title is required'
+  }),
+  description: joi.string().messages({
+    'string.base': 'Description must be a string',
+    'string.empty': 'Description cannot be empty'
+  }),
+  gender: joi.string().messages({
+    'string.base': 'Gender must be a string'
+  }),
+  category: joi.string().messages({
+    'string.base': 'Category must be a string'
+  }),
+  price: joi.number().messages({
+    'number.base': 'Price must be a number'
+  }),
+  image: joi.string().messages({
+    'string.base': 'Image URL must be a string'
   })
-  .options({ abortEarly: false });
+});
 
-// Admin login
-const getAdmin = async (req, res) => {
-  try {
-    const { userId, password } = req.body;
-    const admin = await adminSchema.findOne({
-      $or: [{ username: userId }, { email: userId }],
-    });
-    if (!admin) {
-      return res.status(404).send("Admin not found!");
-    }
-    const isPasswordMatch = await bcrypt.compare(password, admin.password);
-    if (isPasswordMatch) {
-      const token = jwt.sign(
-        { username: admin.username, email: admin.email },
-        process.env.AdminKey,
-        {
-          expiresIn: "1h",
-        }
-      );
-      res
-        .status(200)
-        .cookie("token", token)
-        .json({ status: "success", message: "Successfully logged in" });
-    }
-  } catch (error) {
-    console.log(error);
-    res.send("Something went wrong");
-  }
+
+//.......... Get Users ..............
+const getUsers = async (req, res) => {
+  const users = await userSchema.find({}, "-__v");
+  if (users.length === 0) { throw new createError.NotFound("No users found") };
+  return res.status(200).send(users);
 };
 
-//Admin Signup
+//........... Get a user by Id .............
+const getUser = async (req, res) => {
+  const { id } = req.params;
+  const user = await userSchema.findById(id);
+  if (!user) { throw new createError.NotFound("No user found please try again") };
+  return res.status(200).send(user)
+}
 
-const postAdmin = async (req, res) => {
-  try {
-    const token = req.cookies.token;
-    const decode = jwt.verify(token, process.env.AdminKey);
-    const { username, email, password } = req.body;
-
-    const newAdmin = { username: username, email: email, password: password };
-    const validate = await joiSchema.validate(newAdmin);
-    if (validate.error) {
-      return res.status(401).json({});
-    } else {
-      return res
-        .status(401)
-        .send(
-          "Password must contain 8 characters include a character and a number"
-        );
-    }
-  } catch (error) {
-    console.log(error);
-    res.send("Either existing or incomplete input");
-  }
+//............. Get all products .........................
+const getProducts = async (req, res) => {
+  const products = await productSchema.find({}, "-__v");
+  if (products.length === 0) {
+    return res.status(200).send("No Product are available");
+  };
+  return res.status(200).send(products);
 };
 
-//Delete Admin
-const deleteAdmin = async (req, res) => {
-  try {
-    const data = req.body;
-    const status = await adminSchema.find({
-      id: data.id,
-      email: data.email,
-      password: data.password,
-    });
-    console.log(status);
-    if (status.length != 0) {
-      await adminSchema
-        .deleteOne({
-          id: data.id,
-          email: data.email,
-          password: data.password,
-        })
-        .then(() => res.send("Delete admin successfully"))
-        .catch((error) => {
-          console.log(error);
-          res.send("No admin found !!");
-        });
-    } else {
-      res.send("No admin found!!");
-    }
-  } catch (error) {
-    console.log(error);
-    res.send("No admin found!!");
+//................ Get product by category ...................
+const getProductCategory = async (req, res) => {
+  const category = req.query.category;
+  const products = await productSchema.find(
+    {
+      $or: [
+        { gender: { $regex: new RegExp(category, "i") } }, //make case-insensitive
+        { category: { $regex: new RegExp(category, "i") } }
+      ]
+    },
+    "-__v"
+  );
+
+  if (products.length === 0) {
+    throw new createError.NotFound("No item in the given category");
   }
+  res.status(200).send(products);
+}
+
+//....... Get a product by id ................
+const getproduct = async (req, res) => {
+  const { id } = req.params;
+  const product = await productSchema.findById(id);
+  if (!product) { throw new createError.NotFound("No item found") };
+  res.status(200).send(product);
+}
+
+//....... Add product ..................
+const addProduct = async (req, res) => {
+  const data = req.body;
+  const validate = await joiSchema.validate(data);
+  if (validate.error) {
+    const errorMessage = validate.error.details[0].message;
+    throw new createError.BadRequest(errorMessage);
+  }
+  const newProduct = await new productSchema({
+    title: data.title,
+    ...(data.description && { description: data.description }),
+    gender: data.gender,
+    category: data.category,
+    price: data.price,
+    image: data.image
+  });
+  await newProduct.save();
+  res.status(201).send("New product added");
 };
 
-module.exports = { getAdmin, postAdmin, deleteAdmin };
+
+module.exports = { getUsers, getUser, getProducts, getProductCategory, getproduct, addProduct };
