@@ -1,7 +1,8 @@
-exports.trycatch=(controller)=>async(req,res,next)=>{
+exports.trycatch = (controller) => async (req, res, next) => {
     try {
-        await controller(req,res,next);
-    } catch (error) {;
+        await controller(req, res, next);
+    } catch (error) {
+        ;
         return next(error);
     }
 }

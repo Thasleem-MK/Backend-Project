@@ -27,7 +27,7 @@ const userRegister = async (req, res) => {
   const validationResult = await joiSchema.validate(data);
   if (validationResult.error) {
     const errorMessage = validationResult.error.details[0].message;
-    throw new createError.Unauthorized(errorMessage);
+    throw new createError.BadRequest(errorMessage);
   };
 
   const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -36,7 +36,7 @@ const userRegister = async (req, res) => {
     email: data.email,
     password: hashedPassword,
   });
-  res.send("You are registered");
+  res.status(201).send("You are registered");
 }
 
 //................User Login................................
@@ -47,10 +47,10 @@ const userLogin = async (req, res) => {
     $or: [{ userName: data.userId }, { email: data.userId }],
   });
   if (!user) {
-    throw new createError.NotFound("User not found!!");
+    throw new createError.NotFound("User not found. Please check your username or email.");
   }
   const isPasswordMatch = await bcrypt.compare(data.password, user.password);
-  if (!isPasswordMatch) { throw new createError.BadRequest("Password mismatch") }
+  if (!isPasswordMatch) { throw new createError.BadRequest("Incorrect password. Please try again.") }
   const key = process.env.SecretKey;
   const token = jwt.sign(
     { userId: user._id, userName: user.userName },
@@ -60,7 +60,7 @@ const userLogin = async (req, res) => {
     }
   );
   res.cookie("token", token);
-  res.status(200).send("Loged in successfully");
+  res.status(200).send("Logged in successfully");
 };
 
 module.exports = { userRegister, userLogin };
