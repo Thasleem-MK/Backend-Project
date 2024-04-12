@@ -34,6 +34,6 @@ usersRoute.delete(
 usersRoute.post("/users/orders", userAuthentication, trycatch(controller.orderCart));
 
 //....... Refresh Token ..........
-usersRoute.post("/refresh-token", trycatch(reg_logController.refresh));
+usersRoute.get("/users/refresh-token", trycatch(reg_logController.refresh));
 
 module.exports = usersRoute;

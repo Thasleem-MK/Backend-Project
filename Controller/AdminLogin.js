@@ -56,18 +56,25 @@ const getAdmin = async (req, res) => {
         throw new createError.Unauthorized("User not found. Please check your userId ");
     }
     const isPasswordMatch = await bcrypt.compare(password, admin.password);
-    if (!isPasswordMatch) { throw new createError.Unauthorized("Incorrect password. Please try again.") }
-    const token = jwt.sign(
+    if (!isPasswordMatch) { throw new createError.Unauthorized("Incorrect password. Please try again.") };
+    const accessToken = jwt.sign(
         { username: admin.username, email: admin.email },
         process.env.AdminKey,
         {
-            expiresIn: "1h",
+            expiresIn: "1m",
         }
     );
-    res
-        .status(200)
-        .cookie("token", token)
-        .json({ status: "success", message: "Logged in" });
+    const refreshToken = jwt.sign({ username: admin.username, email: admin.email },
+        process.env.RefreshTokenSecret,
+        {
+            expiresIn: "7d",
+        })
+    res.cookie("token", accessToken, {
+        expires: new Date(Date.now() + 60 * 1000),
+        httpOnly: true,
+    });
+    res.cookie("refreshToken", refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    return res.status(200).json({ status: "success", message: "Logged in" });
 };
 
 //............... Delete Admin .................
@@ -88,5 +95,25 @@ const deleteAdmin = async (req, res) => {
     return res.status(200).send("Admin deleted successfully");
 };
 
+//.......... Refresh Token .............................
+const refresh = async (req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+        throw new createError.BadRequest("Login please!");
+    }
+    const decoded = jwt.verify(refreshToken, process.env.RefreshTokenSecret);
+    const accessToken = jwt.sign(
+        { username: decoded.username, email: decoded.email },
+        process.env.AdminKey,
+        {
+            expiresIn: "1m",
+        }
+    );
+    const originalUrl = req.query.originalUrl;
+    res.cookie("token", accessToken, {
+        expires: new Date(Date.now() + 60 * 1000),
+        httpOnly: true,
+    }).redirect(originalUrl);
+}
 
-module.exports = { getAdmin, postAdmin, deleteAdmin };
+module.exports = { getAdmin, postAdmin, deleteAdmin, refresh };

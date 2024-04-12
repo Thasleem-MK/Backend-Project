@@ -20,4 +20,7 @@ adminRoutes.delete("/admin/products/:id", adminAuthentication, trycatch(adminCon
 adminRoutes.get("/admin/status", adminAuthentication, trycatch(adminController.status));
 adminRoutes.get("/admin/orders", adminAuthentication, trycatch(adminController.orderProducts));
 
+//....... Refresh Token ..........
+adminRoutes.get("/admins/refresh-token", trycatch(controller.refresh));
+
 module.exports = adminRoutes;

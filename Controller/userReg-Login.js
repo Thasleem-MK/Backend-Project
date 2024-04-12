@@ -56,7 +56,7 @@ const userLogin = async (req, res) => {
     { userId: user._id, userName: user.userName },
     key,
     {
-      expiresIn: "1h",
+      expiresIn: "1m",
     }
   );
   const refreshToken = jwt.sign({ userId: user._id, userName: user.userName },
@@ -64,7 +64,10 @@ const userLogin = async (req, res) => {
     {
       expiresIn: "7d",
     })
-  res.cookie("token", accessToken);
+  res.cookie("token", accessToken, {
+    expires: new Date(Date.now() + 60 * 1000),
+    httpOnly: true,
+  });
   res.cookie("refreshToken", refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
   res.status(200).send("Logged in successfully");
 };
@@ -72,10 +75,12 @@ const userLogin = async (req, res) => {
 
 //............. Refresh Token ........................
 const refresh = async (req, res) => {
+
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
     throw new createError.BadRequest("Login please!");
   }
+
   const decoded = jwt.verify(refreshToken, process.env.RefreshTokenSecret);
   const accessToken = jwt.sign(
     { userId: decoded.userId, userName: decoded.userName },
@@ -84,7 +89,11 @@ const refresh = async (req, res) => {
       expiresIn: "1m",
     }
   );
-  res.cookie("token", accessToken);
+  const originalUrl = req.query.originalUrl;
+  res.cookie("token", accessToken, {
+    expires: new Date(Date.now() + 60 * 1000),
+    httpOnly: true,
+  }).redirect(originalUrl);
 }
 
 module.exports = { userRegister, userLogin, refresh };
