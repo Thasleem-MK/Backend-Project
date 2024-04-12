@@ -8,7 +8,8 @@ const { trycatch } = require("../utils/tryCatch")
 const userAuthentication = trycatch(async (req, res, next) => {
   const { token } = req.cookies;
   if (!token) {
-    throw new createError.Unauthorized("You have no token, Login please..")
+    // throw new createError.Unauthorized("You have no token, Login please..")
+    return res.redirect('/refresh-token');
   }
   const decode = await jwt.verify(token, process.env.SecretKey);
   const user = await userSchema.find({ _id: decode.userId });

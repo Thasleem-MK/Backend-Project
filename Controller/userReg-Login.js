@@ -52,15 +52,39 @@ const userLogin = async (req, res) => {
   const isPasswordMatch = await bcrypt.compare(data.password, user.password);
   if (!isPasswordMatch) { throw new createError.BadRequest("Incorrect password. Please try again.") }
   const key = process.env.SecretKey;
-  const token = jwt.sign(
+  const accessToken = jwt.sign(
     { userId: user._id, userName: user.userName },
     key,
     {
       expiresIn: "1h",
     }
   );
-  res.cookie("token", token);
+  const refreshToken = jwt.sign({ userId: user._id, userName: user.userName },
+    process.env.RefreshTokenSecret,
+    {
+      expiresIn: "7d",
+    })
+  res.cookie("token", accessToken);
+  res.cookie("refreshToken", refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
   res.status(200).send("Logged in successfully");
 };
 
-module.exports = { userRegister, userLogin };
+
+//............. Refresh Token ........................
+const refresh = async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+  if (!refreshToken) {
+    throw new createError.BadRequest("Login please!");
+  }
+  const decoded = jwt.verify(refreshToken, process.env.RefreshTokenSecret);
+  const accessToken = jwt.sign(
+    { userId: decoded.userId, userName: decoded.userName },
+    process.env.SecretKey,
+    {
+      expiresIn: "1m",
+    }
+  );
+  res.cookie("token", accessToken);
+}
+
+module.exports = { userRegister, userLogin, refresh };

@@ -114,7 +114,7 @@ const updateProduct = async (req, res) => {
   return res.status(200).send("Product updated successfully");
 }
 
-//............ Delete Product ...................
+//............... Delete Product ...................
 const deleteProduct = async (req, res) => {
   const { id } = req.params;
   const product = await productSchema.findByIdAndDelete(id);
@@ -122,7 +122,7 @@ const deleteProduct = async (req, res) => {
   return res.status(200).send("Product deleted successfully");
 }
 
-//......... Get Status ...................
+//............... Get Status ...................
 const status = async (req, res) => {
   let orderDetails = [];
   const productDetails = await orderSchema.aggregate([

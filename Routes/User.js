@@ -2,7 +2,7 @@ const express = require("express");
 const usersRoute = express.Router();
 const controller = require("../Controller/UserController");
 const reg_logController = require("../Controller/userReg-Login")
-const {userAuthentication} = require("../Middlewares/auth");
+const { userAuthentication } = require("../Middlewares/auth");
 const { trycatch } = require("../utils/tryCatch");
 
 usersRoute.post("/users/register", trycatch(reg_logController.userRegister));
@@ -32,5 +32,8 @@ usersRoute.delete(
   trycatch(controller.deleteWishItem)
 );
 usersRoute.post("/users/orders", userAuthentication, trycatch(controller.orderCart));
+
+//....... Refresh Token ..........
+usersRoute.post("/refresh-token", trycatch(reg_logController.refresh));
 
 module.exports = usersRoute;
