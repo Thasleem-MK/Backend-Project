@@ -15,7 +15,9 @@ adminRoutes.get("/admin/products", adminAuthentication, trycatch(adminController
 adminRoutes.get("/admin/products/category", adminAuthentication, trycatch(adminController.getProductCategory));
 adminRoutes.get("/admin/products/:id", adminAuthentication, trycatch(adminController.getproduct));
 adminRoutes.post("/admin/products", adminAuthentication, trycatch(adminController.addProduct));
-
-//adminRoutes.post("/admin/products", productController.addProduct);
+adminRoutes.put("/admin/products/:id", adminAuthentication, trycatch(adminController.updateProduct));
+adminRoutes.delete("/admin/products/:id", adminAuthentication, trycatch(adminController.deleteProduct));
+adminRoutes.get("/admin/status", adminAuthentication, trycatch(adminController.status));
+adminRoutes.get("/admin/orders", adminAuthentication, trycatch(adminController.orderProducts));
 
 module.exports = adminRoutes;

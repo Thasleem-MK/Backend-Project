@@ -1,5 +1,6 @@
 const productSchema = require('../Models/ProductSchema');
 const userSchema = require('../Models/UserSchema');
+const orderSchema = require('../Models/ordersSchema');
 const createError = require('http-errors');
 const joi = require('joi')
 
@@ -99,5 +100,67 @@ const addProduct = async (req, res) => {
   res.status(201).send("New product added");
 };
 
+//.............. Update Products ...................
+const updateProduct = async (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
+  const validate = await joiSchema.validate(data);
+  if (validate.error) {
+    const errorMessage = validate.error.details[0].message;
+    throw new createError.BadRequest(errorMessage);
+  }
+  const product = await productSchema.findByIdAndUpdate(id, data, { new: true });
+  if (!product) { throw new createError.NotFound("No product in the given Id") };
+  return res.status(200).send("Product updated successfully");
+}
 
-module.exports = { getUsers, getUser, getProducts, getProductCategory, getproduct, addProduct };
+//............ Delete Product ...................
+const deleteProduct = async (req, res) => {
+  const { id } = req.params;
+  const product = await productSchema.findByIdAndDelete(id);
+  if (!product) { throw new createError.NotFound("Product not found in the given Id") };
+  return res.status(200).send("Product deleted successfully");
+}
+
+//......... Get Status ...................
+const status = async (req, res) => {
+  let orderDetails = [];
+  const productDetails = await orderSchema.aggregate([
+    { $unwind: "$products" },
+    {
+      $group: {
+        _id: "$products.productId",
+        totalQuantity: { $sum: "$products.quantity" }
+      }
+    },
+  ]);
+  if (productDetails.length === 0) { return res.status(200).send("No ordered items") };
+
+  await Promise.all(productDetails.map(async (items) => {
+    const product = await productSchema.findById(items._id, "-__v");
+    const { title, description, gender, category, price, image } = product;
+    orderDetails.push({ title, description, gender, category, price, image, totalQuantity: items.totalQuantity, totalRevenue: price * items.totalQuantity });
+  }));
+
+  return res.status(200).json({
+    status: 'success',
+    message: 'Successfully fetched stats.',
+    data: orderDetails,
+  });
+}
+
+//................ Oreders ...................
+const orderProducts = async (req, res) => {
+  const orders = await orderSchema.find({},"-__v");
+  if (orders.length === 0) {
+    return res.status(200).send("No orders");
+  }
+  res.json({
+    status: 'success',
+    message: 'Successfully fetched order detail.',
+    data: orders
+  })
+}
+
+
+module.exports = { getUsers, getUser, getProducts, getProductCategory, getproduct, addProduct, updateProduct, deleteProduct, status, orderProducts };
