@@ -20,6 +20,7 @@ usersRoute.get(
 );
 usersRoute.post("/users/cart", userAuthentication, trycatch(controller.addCartItems));
 usersRoute.get("/users/cart", userAuthentication, trycatch(controller.readCart));
+usersRoute.delete("/users/cart", userAuthentication, trycatch(controller.deleteCart));
 usersRoute.post(
   "/users/wishlists",
   userAuthentication,

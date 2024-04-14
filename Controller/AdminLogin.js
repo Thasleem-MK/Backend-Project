@@ -109,11 +109,11 @@ const refresh = async (req, res) => {
             expiresIn: "1m",
         }
     );
-    const originalUrl = req.query.originalUrl;
     res.cookie("token", accessToken, {
         expires: new Date(Date.now() + 60 * 1000),
         httpOnly: true,
-    }).redirect(originalUrl);
+    }).send("New access token generated");
 }
+
 
 module.exports = { getAdmin, postAdmin, deleteAdmin, refresh };

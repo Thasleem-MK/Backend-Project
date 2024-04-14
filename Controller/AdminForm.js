@@ -3,10 +3,12 @@ const userSchema = require('../Models/UserSchema');
 const orderSchema = require('../Models/ordersSchema');
 const createError = require('http-errors');
 const joi = require('joi')
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
 
 //.......... Joi validation ...........
 const joiSchema = joi.object({
-  title: joi.string().required().messages({
+  title: joi.string().messages({
     'string.empty': 'Title is required',
     'any.required': 'Title is required'
   }),
@@ -81,37 +83,88 @@ const getproduct = async (req, res) => {
 }
 
 //....... Add product ..................
-const addProduct = async (req, res) => {
-  const data = req.body;
-  const validate = await joiSchema.validate(data);
-  if (validate.error) {
-    const errorMessage = validate.error.details[0].message;
-    throw new createError.BadRequest(errorMessage);
-  }
-  const newProduct = await new productSchema({
-    title: data.title,
-    ...(data.description && { description: data.description }),
-    gender: data.gender,
-    category: data.category,
-    price: data.price,
-    image: data.image
+cloudinary.config({
+  cloud_name: 'dub1nm5pa',
+  api_key: '168674223973647',
+  api_secret: '-WS7T-IcckSdwVSokfp5lmy5HZY'
+})
+
+const storage = multer.diskStorage({});
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 1024 * 1024 * 1
+  },
+});
+const addProduct = async (req, res, next) => { // Pass `next` as a parameter
+  upload.single('image')(req, res, async (err) => {
+    if (err) {
+      return next(new createError.BadRequest("Failed to upload image"));
+    }
+    try {
+      // Validate product data using Joi schema
+      const data = req.body;
+      const validate = await joiSchema.validate(data);
+      if (validate.error) {
+        const errorMessage = validate.error.details[0].message;
+        return next(new createError.BadRequest(errorMessage));
+      }
+      if (!req.file) {
+        return next(new createError.BadRequest("No image uploaded"));
+      }
+      const result = await cloudinary.uploader.upload(req.file.path);
+      const newProduct = await new productSchema({
+        title: data.title,
+        ...(data.description && { description: data.description }),
+        gender: data.gender,
+        category: data.category,
+        price: data.price,
+        image: result.secure_url,
+      });
+      await newProduct.save();
+      next();
+      res.status(201).send("New product added");
+    } catch (error) {
+      next(error);
+    }
   });
-  await newProduct.save();
-  res.status(201).send("New product added");
 };
+
+
 
 //.............. Update Products ...................
 const updateProduct = async (req, res) => {
-  const { id } = req.params;
-  const data = req.body;
-  const validate = await joiSchema.validate(data);
-  if (validate.error) {
-    const errorMessage = validate.error.details[0].message;
-    throw new createError.BadRequest(errorMessage);
-  }
-  const product = await productSchema.findByIdAndUpdate(id, data, { new: true });
-  if (!product) { throw new createError.NotFound("No product in the given Id") };
-  return res.status(200).send("Product updated successfully");
+  upload.single('image')(req, res, async (err) => {
+    if (err) {
+      return next(new createError.BadRequest("Failed to upload image"));
+    }
+    const { id } = req.params;
+    const data = req.body;
+    const { error } = joiSchema.validate(data, { allowUnknown: true });
+    if (error) {
+      throw new createError.BadRequest(error.details[0].message);
+    }
+
+    const product = await productSchema.findById(id);
+    if (!product) {
+      throw new createError.NotFound("No product found with the given ID");
+    }
+
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path);
+      product.image = result.secure_url;
+    }
+
+    // Update only the fields provided in the body
+    Object.keys(data).forEach(key => {
+      if (key !== 'image') {
+        product[key] = data[key];
+      }
+    });
+
+    await product.save();
+    return res.status(200).send("Product updated successfully");
+  })
 }
 
 //............... Delete Product ...................
@@ -151,7 +204,7 @@ const status = async (req, res) => {
 
 //................ Oreders ...................
 const orderProducts = async (req, res) => {
-  const orders = await orderSchema.find({},"-__v");
+  const orders = await orderSchema.find({}, "-__v");
   if (orders.length === 0) {
     return res.status(200).send("No orders");
   }

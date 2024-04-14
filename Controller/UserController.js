@@ -74,7 +74,6 @@ const addCartItems = async (req, res) => {
 
 //................ Read the cart .............................
 const readCart = async (req, res) => {
-  console.log("Read cart");
   const { token } = req.cookies;
   const decode = jwt.verify(token, process.env.SecretKey);
   const user = await cartSchema.findOne({ userId: decode.userId }).populate("cart.product");
@@ -83,6 +82,24 @@ const readCart = async (req, res) => {
   }
   return res.status(200).json(user.cart);
 };
+
+//............ Delete Cart ........................
+const deleteCart = async (req, res) => {
+  const { productId } = req.body;
+  const { token } = req.cookies;
+  const { userId } = jwt.verify(token, process.env.SecretKey);
+  const user = await cartSchema.findOne({ userId: userId });
+  if (!user) {
+    throw new createError.NotFound("Item not found in your cart");
+  }
+  const productIndex = await user.cart.findIndex((item) => {
+    return item.product.toString() === productId;
+  });
+  if (productIndex === -1) { throw new createError.NotFound("Item not found in your cart") }
+  user.cart.splice(productIndex, 1);
+  await user.save();
+  return res.status(200).send("The specific item removed from cart");
+}
 
 //............. Add to wishList ....................
 const addToWishList = async (req, res) => {
@@ -184,6 +201,7 @@ module.exports = {
   userProductByCategory,
   addCartItems,
   readCart,
+  deleteCart,
   addToWishList,
   readWishList,
   deleteWishItem,
