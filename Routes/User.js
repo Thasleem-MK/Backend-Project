@@ -37,4 +37,9 @@ usersRoute.post("/users/orders", userAuthentication, trycatch(controller.orderCa
 //....... Refresh Token ..........
 usersRoute.get("/users/refresh-token", trycatch(reg_logController.refresh));
 
+//Success route
+usersRoute.get("/users/success",userAuthentication, trycatch(controller.success));
+//Cancel Route
+usersRoute.get("/users/cancel",userAuthentication, trycatch(controller.cancel));
+
 module.exports = usersRoute;

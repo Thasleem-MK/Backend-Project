@@ -93,7 +93,7 @@ const refresh = async (req, res) => {
   res.cookie("token", accessToken, {
     expires: new Date(Date.now() + 60 * 1000),
     httpOnly: true,
-  }).redirect(originalUrl);
+  }).send("New access token generated");
 }
 
 module.exports = { userRegister, userLogin, refresh };

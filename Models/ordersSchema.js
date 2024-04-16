@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const productSchema = require("./ProductSchema");
+const { string } = require('joi');
 
 const orders = mongoose.Schema({
     userId: {
@@ -32,6 +33,9 @@ const orders = mongoose.Schema({
     totalItems: {
         type: Number,
         default: 0,
+    },
+    orderId: {
+        type: String,
     }
 })
 
