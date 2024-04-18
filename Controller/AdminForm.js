@@ -107,8 +107,6 @@ const addProduct = async (req, res, next) => {
   }
 };
 
-
-
 //.............. Update Products ...................
 const updateProduct = async (req, res) => {
   const { id } = req.params;

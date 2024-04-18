@@ -9,6 +9,9 @@ const createError = require('http-errors');
 // => Joi validation
 
 const joiSchema = joi.object({
+  name: joi.string().required().messages({
+    'string.empty': 'Name is required'
+  }),
   userName: joi.string().required().lowercase().messages({
     'string.empty': 'Username is required',
     'string.pattern.base': 'Username must contain only letters and numbers',
@@ -22,21 +25,21 @@ const joiSchema = joi.object({
 
 // =>User Registeration
 const userRegister = async (req, res) => {
-  const data = req.body;
+  const data = JSON.parse(req.body.data)
 
+  console.log("body", data)
   const validationResult = await joiSchema.validate(data);
   if (validationResult.error) {
     const errorMessage = validationResult.error.details[0].message;
     throw new createError.BadRequest(errorMessage);
   };
-
   const hashedPassword = await bcrypt.hash(data.password, 10);
   await userSchema.create({
-    userName: data.userName,
-    email: data.email,
+    ...data,
     password: hashedPassword,
+    profileImg: req.cloudinaryImageUrl,
   });
-  res.status(201).send("You are registered");
+  res.status(201).json({ status: "Success", message: "You are registered" });
 }
 
 //................User Login................................

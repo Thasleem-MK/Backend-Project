@@ -11,7 +11,7 @@ const errorHandler = require("./Middlewares/errorHandler");
 const app = express();
 
 dotenv.config({ path: "./config/.env" });
-
+app.use(cors());
 
 app.use(express.json());
 app.use(cookie_Parser());
@@ -19,7 +19,7 @@ app.use(cookie_Parser());
 app.use("/api", adminRoute);
 app.use("/api", usersRoute);
 
-app.use(cors());
+
 
 dbConnect();
 
