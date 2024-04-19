@@ -11,14 +11,13 @@ usersRoute.post("/users/login", trycatch(reg_logController.userLogin));
 usersRoute.get("/users/products", trycatch(controller.userProducts));
 usersRoute.get(
   "/users/products/:id",
-  userAuthentication,
   trycatch(controller.userProductById)
 );
 usersRoute.get(
   "/users/products/category/:categoryname",
-  userAuthentication,
   trycatch(controller.userProductByCategory)
 );
+usersRoute.get("/users/profile", userAuthentication, trycatch(controller.userProfile));
 usersRoute.post("/users/cart", userAuthentication, trycatch(controller.addCartItems));
 usersRoute.get("/users/cart", userAuthentication, trycatch(controller.readCart));
 usersRoute.delete("/users/cart", userAuthentication, trycatch(controller.deleteCart));

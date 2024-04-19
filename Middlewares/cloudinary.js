@@ -20,13 +20,9 @@ const uploadImage = (req, res, next) => {
 
     upload.single('image')(req, res, async error => {
         try {
-            
-
             if (req.file) {
-                
                 const result = await cloudinary.uploader.upload(req.file.path);
                 req.cloudinaryImageUrl = result.secure_url;
-                
             }
             next();
         } catch (error) {

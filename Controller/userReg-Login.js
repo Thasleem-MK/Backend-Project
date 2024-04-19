@@ -59,7 +59,8 @@ const userLogin = async (req, res) => {
     { userId: user._id, userName: user.userName },
     key,
     {
-      expiresIn: "1m",
+      expiresIn: "10m",
+
     }
   );
   const refreshToken = jwt.sign({ userId: user._id, userName: user.userName },
@@ -68,34 +69,29 @@ const userLogin = async (req, res) => {
       expiresIn: "7d",
     })
   res.cookie("token", accessToken, {
-    expires: new Date(Date.now() + 60 * 1000),
-    httpOnly: true,
+    expires: new Date(Date.now() + 60 * 10 * 1000)
+
   });
-  res.cookie("refreshToken", refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+  res.cookie("refreshToken", refreshToken, { maxAge: 7 * 24 * 60 * 60 * 1000 });
   res.status(200).send("Logged in successfully");
 };
 
-
 //............. Refresh Token ........................
 const refresh = async (req, res) => {
-
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
     throw new createError.BadRequest("Login please!");
   }
-
   const decoded = jwt.verify(refreshToken, process.env.RefreshTokenSecret);
   const accessToken = jwt.sign(
     { userId: decoded.userId, userName: decoded.userName },
     process.env.SecretKey,
     {
-      expiresIn: "1m",
+      expiresIn: "10m",
     }
   );
-  const originalUrl = req.query.originalUrl;
   res.cookie("token", accessToken, {
-    expires: new Date(Date.now() + 60 * 1000),
-    httpOnly: true,
+    expires: new Date(Date.now() + 600 * 1000),
   }).send("New access token generated");
 }
 

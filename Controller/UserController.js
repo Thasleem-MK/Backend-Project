@@ -7,8 +7,19 @@ const jwt = require("jsonwebtoken");
 const createError = require('http-errors');
 const stripeID = require('stripe')("sk_test_51P5UXZSBDzdy1QTWpNIKtArSEQbiMZjfYDYU9jovotYhHLQ3psaq6zDz5aM9IEGcA2LNgHSqOk8M6E5i9sa2OjuI002nxX88bZ");
 
+//............... User Profile .....................
+const userProfile = async (req, res) => {
+  const { token } = req.cookies;
+  const decode = jwt.verify(token, process.env.SecretKey);
+  const user = await userSchema.findById(decode.userId);
+  return res.status(200).json({
+    status: "Success", data: user
+  });
+}
+
 //............ show products to users ...............
 const userProducts = async (req, res) => {
+  // console.log(req.cookies);
   const data = await productSchema.find({}, "-__v");
   if (!data) throw new createError.NotFound("No product in store")
   res.status(200).send(data);
@@ -28,12 +39,7 @@ const userProductById = async (req, res) => {
 const userProductByCategory = async (req, res) => {
   const { categoryname } = req.params;
   const products = await productSchema.find(
-    {
-      $or: [
-        { gender: { $regex: new RegExp(category, "i") } },
-        { category: { $regex: new RegExp(category, "i") } }
-      ]
-    },
+    { gender: categoryname },
     "-__v"
   );
 
@@ -242,6 +248,7 @@ const cancel = (req, res) => {
 
 //export modules
 module.exports = {
+  userProfile,
   userProducts,
   userProductById,
   userProductByCategory,
