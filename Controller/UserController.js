@@ -93,6 +93,8 @@ const readCart = async (req, res) => {
 //............ Delete Cart ........................
 const deleteCart = async (req, res) => {
   const { productId } = req.body;
+  console.log(productId);
+
   const { token } = req.cookies;
   const { userId } = jwt.verify(token, process.env.SecretKey);
   const user = await cartSchema.findOne({ userId: userId });
@@ -106,6 +108,23 @@ const deleteCart = async (req, res) => {
   user.cart.splice(productIndex, 1);
   await user.save();
   return res.status(200).send("The specific item removed from cart");
+}
+
+//......... Decrease quantity ................
+const decreaseCartItemQuantity = async (req, res) => {
+  const { productId } = req.body;
+  const { token } = req.cookies;
+  const { userId } = jwt.verify(token, process.env.SecretKey);
+  const user = await cartSchema.findOne({ userId: userId });
+  if (!user) {
+    throw new createError.NotFound("Item not found in your cart");
+  }
+  const productIndex = await user.cart.findIndex((item) => {
+    return item.product.toString() === productId;
+  });
+  if (productIndex !== -1) { user.cart[productIndex].quantity -= 1; }
+  await user.save();
+  res.status(200).send("Product add to cart successfully");
 }
 
 //............. Add to wishList ....................
@@ -178,7 +197,6 @@ const orderCart = async (req, res) => {
     if (!cartData || cartData.cart.length === 0) {
       return res.status(200).json({ message: "No items in your cart" });
     }
-
     const line_items = [];
     for (const cartItem of cartData.cart) {
       const product = await productSchema.findById(cartItem.product);
@@ -196,20 +214,19 @@ const orderCart = async (req, res) => {
         quantity: cartItem.quantity,
       });
     }
-    console.log(line_items);
     // Create Stripe session
     const session = await stripeID.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: "payment",
       line_items: line_items,
-      success_url: 'http://localhost:7000/api/users/success',
-      cancel_url: 'http://localhost:7000/api/users/cancel',
+      // success_url: 'http://localhost:7000/api/users/success',
+      success_url: 'http://localhost:3000/payment',
+      cancel_url: 'http://localhost:3000/payment/cancel',
     });
-    console.log(session.url);
     const sessionId = session.id;
     const sessionUrl = session.url;
     res.cookie("session", sessionId);
-    res.send(`Click to pay: ${sessionUrl}`);
+    res.send(sessionUrl);
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "An error occurred while processing your request" });
@@ -220,10 +237,9 @@ const orderCart = async (req, res) => {
 const success = async (req, res) => {
   const { token, session } = req.cookies;
   const { userId } = jwt.verify(token, process.env.SecretKey);
-
+  res.clearCookie('session');
   const cartData = await cartSchema.findOne({ userId: userId }, "-__v -_id -userId");
   const newOrder = new orderSchema({ userId: userId });
-  // Populate order products
   for (const element of cartData.cart) {
     newOrder.products.push({ productId: element.product, quantity: element.quantity });
   }
@@ -235,15 +251,8 @@ const success = async (req, res) => {
   return res.status(200).json({
     message: "Payment successful",
     orderId: newOrder._id,
-    sessionId: session.id,
+    sessionId: session,
   });
-}
-
-const cancel = (req, res) => {
-  return res.status(200).json({
-    status: "Success",
-    message: "Payment cancelled"
-  })
 }
 
 //export modules
@@ -255,10 +264,10 @@ module.exports = {
   addCartItems,
   readCart,
   deleteCart,
+  decreaseCartItemQuantity,
   addToWishList,
   readWishList,
   deleteWishItem,
   orderCart,
   success,
-  cancel,
 };

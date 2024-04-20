@@ -21,6 +21,7 @@ usersRoute.get("/users/profile", userAuthentication, trycatch(controller.userPro
 usersRoute.post("/users/cart", userAuthentication, trycatch(controller.addCartItems));
 usersRoute.get("/users/cart", userAuthentication, trycatch(controller.readCart));
 usersRoute.delete("/users/cart", userAuthentication, trycatch(controller.deleteCart));
+usersRoute.put("/users/cart", userAuthentication, trycatch(controller.decreaseCartItemQuantity));
 usersRoute.post(
   "/users/wishlists",
   userAuthentication,
@@ -39,7 +40,5 @@ usersRoute.get("/users/refresh-token", trycatch(reg_logController.refresh));
 
 //Success route
 usersRoute.get("/users/success",userAuthentication, trycatch(controller.success));
-//Cancel Route
-usersRoute.get("/users/cancel",userAuthentication, trycatch(controller.cancel));
 
 module.exports = usersRoute;
