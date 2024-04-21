@@ -70,10 +70,10 @@ const getAdmin = async (req, res) => {
             expiresIn: "7d",
         })
     res.cookie("token", accessToken, {
-        expires: new Date(Date.now() + 60 * 1000),
-        httpOnly: true,
+        expires: new Date(Date.now() + 60 * 1000)
     });
-    res.cookie("refreshToken", refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    
+    res.cookie("refreshToken", refreshToken, { maxAge: 7 * 24 * 60 * 60 * 1000 });
     return res.status(200).json({ status: "success", message: "Logged in" });
 };
 

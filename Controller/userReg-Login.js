@@ -26,8 +26,6 @@ const joiSchema = joi.object({
 // =>User Registeration
 const userRegister = async (req, res) => {
   const data = JSON.parse(req.body.data)
-
-  console.log("body", data)
   const validationResult = await joiSchema.validate(data);
   if (validationResult.error) {
     const errorMessage = validationResult.error.details[0].message;
@@ -70,8 +68,8 @@ const userLogin = async (req, res) => {
     })
   res.cookie("token", accessToken, {
     expires: new Date(Date.now() + 60 * 10 * 1000)
-
   });
+  
   res.cookie("refreshToken", refreshToken, { maxAge: 7 * 24 * 60 * 60 * 1000 });
   res.status(200).send("Logged in successfully");
 };
