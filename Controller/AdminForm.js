@@ -1,6 +1,7 @@
 const productSchema = require('../Models/ProductSchema');
 const userSchema = require('../Models/UserSchema');
 const orderSchema = require('../Models/ordersSchema');
+const cartSchema = require('../Models/cartSchema');
 const createError = require('http-errors');
 const joi = require('joi')
 const cloudinary = require('cloudinary').v2;
@@ -44,6 +45,27 @@ const getUser = async (req, res) => {
   if (!user) { throw new createError.NotFound("No user found please try again") };
   return res.status(200).send(user)
 }
+
+//............ Get user cart ..................
+const readCart = async (req, res) => {
+  const { id } = req.params;
+  const userCart = await cartSchema.findOne({ userId: id }).populate("cart.product");
+  if (!userCart || userCart.cart.length === 0) {
+    return res.status(200).send("No items found in the cart!");
+  }
+  return res.status(200).json(userCart.cart);
+};
+
+//........ Get Orders .................
+const orders = async (req, res) => {
+  const { id } = req.params;
+  const userOrders = await orderSchema.find({ userId: id }).populate({
+    path: "products.productId",
+    select: "title image price",
+  });
+  res.json(userOrders);
+}
+
 
 //............. Get all products .........................
 const getProducts = async (req, res) => {
@@ -127,7 +149,7 @@ const updateProduct = async (req, res) => {
   Object.keys(data).forEach(key => {
     if (key !== 'image') {
       product[key] = data[key];
-    } 
+    }
   });
 
   await product.save();
@@ -182,5 +204,15 @@ const orderProducts = async (req, res) => {
   })
 }
 
+//....... Complete Order .........................
+const orderComplete = async (req, res) => {
+  const { id } = req.params;
+  const order = await orderSchema.findByIdAndDelete(id);
+  if (!order) {
+    return res.status(404).json({ error: "Order not found" });
+  }
+  res.status(200).json({ message: "Order deleted successfully" });
+}
 
-module.exports = { getUsers, getUser, getProducts, getProductCategory, getproduct, addProduct, updateProduct, deleteProduct, status, orderProducts };
+
+module.exports = { getUsers, getUser, readCart, orders,orderComplete, getProducts, getProductCategory, getproduct, addProduct, updateProduct, deleteProduct, status, orderProducts };

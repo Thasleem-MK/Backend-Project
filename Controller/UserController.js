@@ -236,24 +236,36 @@ const orderCart = async (req, res) => {
 //......... Success message ................
 const success = async (req, res) => {
   const { token, session } = req.cookies;
-  const { userId } = jwt.verify(token, process.env.SecretKey);
-  res.clearCookie('session');
-  const cartData = await cartSchema.findOne({ userId: userId }, "-__v -_id -userId");
-  const newOrder = new orderSchema({ userId: userId });
-  for (const element of cartData.cart) {
-    newOrder.products.push({ productId: element.product, quantity: element.quantity });
+  try {
+    const { userId } = jwt.verify(token, process.env.SecretKey);
+    res.clearCookie('session');
+    const cartData = await cartSchema.findOne({ userId }).populate('cart.product');
+    const newOrder = new orderSchema({ userId });
+    let totalPrice = 0;
+    let totalItems = 0;
+    cartData.cart.forEach((item) => {
+      newOrder.products.push({ productId: item.product._id, quantity: item.quantity });
+      totalPrice += item.product.price * item.quantity;
+      totalItems += item.quantity;
+    });
+    newOrder.totalPrice = totalPrice;
+    newOrder.totalItems = totalItems;
+    newOrder.orderId = session;
+    await newOrder.save();
+
+    await cartSchema.findOneAndUpdate({ userId }, { $set: { cart: [] } });
+
+    return res.status(200).json({
+      message: "Payment successful",
+      orderId: newOrder._id,
+      sessionId: session,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
   }
-  await newOrder.save();
-  newOrder.orderId = session
-  await newOrder.save();
-  const newCart = await cartSchema.findOneAndUpdate({ userId: userId }, { $set: { cart: [] } });
-  await newCart.save();
-  return res.status(200).json({
-    message: "Payment successful",
-    orderId: newOrder._id,
-    sessionId: session,
-  });
 }
+
 
 //export modules
 module.exports = {
