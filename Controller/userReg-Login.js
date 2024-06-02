@@ -24,6 +24,7 @@ const joiSchema = joi.object({
 }).options({ abortEarly: false });
 
 // =>User Registeration
+
 const userRegister = async (req, res) => {
   const data = JSON.parse(req.body.data)
   const validationResult = await joiSchema.validate(data);
@@ -58,7 +59,6 @@ const userLogin = async (req, res) => {
     key,
     {
       expiresIn: "10m",
-
     }
   );
   const refreshToken = jwt.sign({ userId: user._id, userName: user.userName },
