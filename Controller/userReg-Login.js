@@ -12,10 +12,10 @@ const joiSchema = joi.object({
   name: joi.string().required().messages({
     'string.empty': 'Name is required'
   }),
-  userName: joi.string().required().lowercase().messages({
-    'string.empty': 'Username is required',
-    'string.pattern.base': 'Username must contain only letters and numbers',
-  }),
+  // userName: joi.string().required().lowercase().messages({
+  //   'string.empty': 'Username is required',
+  //   'string.pattern.base': 'Username must contain only letters and numbers',
+  // }),
   email: joi.string().required().lowercase().email(),
   password: joi.string().required().regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/).messages({
     'string.empty': 'Password is required',
@@ -27,7 +27,7 @@ const joiSchema = joi.object({
 
 const userRegister = async (req, res) => {
   const data = JSON.parse(req.body.data)
-  console.log(data);
+  // console.log(data);
   const validationResult = await joiSchema.validate(data);
   if (validationResult.error) {
     const errorMessage = validationResult.error.details[0].message;
