@@ -27,6 +27,7 @@ const joiSchema = joi.object({
 
 const userRegister = async (req, res) => {
   const data = JSON.parse(req.body.data)
+  console.log(data);
   const validationResult = await joiSchema.validate(data);
   if (validationResult.error) {
     const errorMessage = validationResult.error.details[0].message;
