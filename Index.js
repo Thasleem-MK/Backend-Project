@@ -1,5 +1,4 @@
 const express = require("express");
-// const mongoose = require("mongoose");
 const usersRoute = require("./Routes/User");
 const adminRoute = require("./Routes/Admin");
 const dbConnect = require("./config/dbConnection");
