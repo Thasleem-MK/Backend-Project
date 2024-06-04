@@ -48,8 +48,9 @@ const userLogin = async (req, res) => {
   const data = req.body;
   const user = await userSchema.findOne({ email: data.email }
   );
+  console.log(user);
   if (!user) {
-    throw new createError.NotFound("User not found. Please check your username email.");
+    throw new createError.NotFound("User not found. Please check your email.");
   }
   const isPasswordMatch = await bcrypt.compare(data.password, user.password);
   if (!isPasswordMatch) { throw new createError.BadRequest("Incorrect password. Please try again.") }
