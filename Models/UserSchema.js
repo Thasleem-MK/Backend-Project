@@ -2,10 +2,10 @@ const { string } = require("joi");
 const mongoose = require("mongoose");
 const userSchema = mongoose.Schema({
   name: String,
-  userName: {
-    type: String,
-    unique: true,
-  },
+  // userName: {
+  //   type: String,
+  //   unique: true,
+  // },
   email: {
     type: String,
     unique: true,
