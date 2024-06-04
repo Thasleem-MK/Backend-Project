@@ -8,8 +8,9 @@ const { trycatch } = require("../utils/tryCatch")
 const userAuthentication = trycatch(async (req, res, next) => {
   console.log("User Authentication");
   const { token } = req.cookies;
+  console.log(token);
   if (!token) {
-    return res.redirect(`/api/users/refresh-token?originalUrl=${req.originalUrl}`);
+    return res.redirect(`/users/refresh-token`);
   }
   const decode = await jwt.verify(token, process.env.SecretKey);
   const user = await userSchema.find({ _id: decode.userId });
@@ -22,7 +23,7 @@ const userAuthentication = trycatch(async (req, res, next) => {
 const adminAuthentication = trycatch(async (req, res, next) => {
   const { token } = req.cookies;
   if (!token) {
-    return res.redirect(`/api/admins/refresh-token?originalUrl=${req.originalUrl}`);
+    return res.redirect(`/api/admins/refresh-token`);
   }
   const decode = await jwt.verify(token, process.env.AdminKey);
   const admin = await adminSchema.find({ username: decode.username });
