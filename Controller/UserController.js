@@ -9,7 +9,7 @@ const stripeID = require('stripe')("sk_test_51P5UXZSBDzdy1QTWpNIKtArSEQbiMZjfYDY
 
 //............... User Profile .....................
 const userProfile = async (req, res) => {
-  console.log("lsdfjlsdkfjskldf");
+  console.log("User Profile");
   const { token } = req.cookies;
   console.log(token);
   const decode = await jwt.verify(token, process.env.SecretKey);
@@ -22,6 +22,7 @@ const userProfile = async (req, res) => {
 
 //............ show products to users ...............
 const userProducts = async (req, res) => {
+  console.log("User Product");
   // console.log(req.cookies);
   const data = await productSchema.find({}, "-__v");
   if (!data) throw new createError.NotFound("No product in store")
@@ -30,6 +31,7 @@ const userProducts = async (req, res) => {
 
 //............... show products by id ....................
 const userProductById = async (req, res) => {
+  console.log("userProductById");
   const { id } = req.params;
   if (!await productSchema.findById(id)) {
     throw new createError.NotFound("No product in given id");
@@ -40,6 +42,7 @@ const userProductById = async (req, res) => {
 
 //............... show products by category ..................
 const userProductByCategory = async (req, res) => {
+  console.log("userProductByCategory");
   const { categoryname } = req.params;
   const products = await productSchema.find(
     { gender: categoryname },
@@ -55,6 +58,7 @@ const userProductByCategory = async (req, res) => {
 
 //................ add to cart ........................
 const addCartItems = async (req, res) => {
+  console.log('addCartItem');
   const { productId } = req.body;
   const { token } = req.cookies;
   const decode = jwt.verify(token, process.env.SecretKey);
@@ -84,6 +88,7 @@ const addCartItems = async (req, res) => {
 
 //................ Read the cart .............................
 const readCart = async (req, res) => {
+  console.log("readCart");
   const { token } = req.cookies;
   const decode = jwt.verify(token, process.env.SecretKey);
   const user = await cartSchema.findOne({ userId: decode.userId }).populate("cart.product");
@@ -95,6 +100,7 @@ const readCart = async (req, res) => {
 
 //............ Delete Cart ........................
 const deleteCart = async (req, res) => {
+  console.log('deleteCart');
   const { productId } = req.body;
   console.log(productId);
 
@@ -115,6 +121,7 @@ const deleteCart = async (req, res) => {
 
 //......... Decrease quantity ................
 const decreaseCartItemQuantity = async (req, res) => {
+  console.log("decreaseCartItemQuantity");
   const { productId } = req.body;
   const { token } = req.cookies;
   const { userId } = jwt.verify(token, process.env.SecretKey);
@@ -132,6 +139,7 @@ const decreaseCartItemQuantity = async (req, res) => {
 
 //............. Add to wishList ....................
 const addToWishList = async (req, res) => {
+  console.log("addToWishList");
   const { productId } = req.body;
   const { token } = req.cookies;
   const { userId } = jwt.verify(token, process.env.SecretKey);
@@ -159,6 +167,7 @@ const addToWishList = async (req, res) => {
 
 //.............. Get the wishlist of user ..................
 const readWishList = async (req, res) => {
+  console.log("readWishList");
   const { token } = req.cookies;
   const { userId } = jwt.verify(token, process.env.SecretKey);
   const user = await wishlistSchema.findOne({ userId: userId }).populate("wishList.product");
@@ -170,6 +179,7 @@ const readWishList = async (req, res) => {
 
 //..........delete products from wishlist..............
 const deleteWishItem = async (req, res) => {
+  console.log("deleteWishItem");
   const { productId } = req.body;
   const { token } = req.cookies;
   const { userId } = jwt.verify(token, process.env.SecretKey);
@@ -193,6 +203,7 @@ const deleteWishItem = async (req, res) => {
 //............ Order Cart item ................
 
 const orderCart = async (req, res) => {
+  console.log("orderCart");
   try {
     const { token } = req.cookies;
     const { userId } = jwt.verify(token, process.env.SecretKey);
@@ -238,6 +249,7 @@ const orderCart = async (req, res) => {
 
 //......... Success message ................
 const success = async (req, res) => {
+  console.log("success");
   const { token, session } = req.cookies;
   try {
     const { userId } = jwt.verify(token, process.env.SecretKey);

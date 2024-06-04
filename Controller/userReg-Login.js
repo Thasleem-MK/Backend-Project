@@ -22,6 +22,7 @@ const joiSchema = joi.object({
 // =>User Registeration
 
 const userRegister = async (req, res) => {
+  console.log("userRegister");
   const data = JSON.parse(req.body.data);
   const validationResult = await joiSchema.validateAsync(data);
 
@@ -45,6 +46,7 @@ const userRegister = async (req, res) => {
 //................User Login................................
 
 const userLogin = async (req, res) => {
+  console.log("userLogin");
   const data = req.body;
   const user = await userSchema.findOne({ email: data.email }
   );
@@ -76,6 +78,7 @@ const userLogin = async (req, res) => {
 
 //............. Refresh Token ........................
 const refresh = async (req, res) => {
+  console.log("refresh");
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
     throw new createError.BadRequest("Login please!");
