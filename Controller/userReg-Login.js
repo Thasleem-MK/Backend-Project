@@ -15,25 +15,30 @@ const joiSchema = joi.object({
   email: joi.string().required().lowercase().email(),
   password: joi.string().required().regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/).messages({
     'string.empty': 'Password is required',
-    'string.pattern.base': 'Password should contain 8 characters of letters and numbers.No special characters allowed',
+    'string.pattern.base': 'Password should contain 8 characters of letters and numbers. No special characters allowed',
   }),
 }).options({ abortEarly: false });
 
 // =>User Registeration
 
 const userRegister = async (req, res) => {
-  const data = JSON.parse(req.body.data)
-  const validationResult = await joiSchema.validate(data);
-  if (validationResult.error) {
-    const errorMessage = validationResult.error.details[0].message;
-    throw new createError.BadRequest(errorMessage);
-  };
+  const data = JSON.parse(req.body.data);
+  const validationResult = await joiSchema.validateAsync(data);
+
+  const existingUser = await User.findOne({ email: data.email });
+  if (existingUser) {
+    throw new createError.Conflict("Email is already registered");
+  }
+
   const hashedPassword = await bcrypt.hash(data.password, 10);
-  await userSchema.create({
+  const newUser = new User({
     ...data,
     password: hashedPassword,
     profileImg: req.cloudinaryImageUrl,
   });
+
+  await newUser.save();
+
   res.status(201).json({ status: "Success", message: "You are registered" });
 }
 
