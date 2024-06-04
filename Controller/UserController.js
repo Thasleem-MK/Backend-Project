@@ -9,6 +9,7 @@ const stripeID = require('stripe')("sk_test_51P5UXZSBDzdy1QTWpNIKtArSEQbiMZjfYDY
 
 //............... User Profile .....................
 const userProfile = async (req, res) => {
+  console.log("lsdfjlsdkfjskldf");
   const { token } = req.cookies;
   console.log(token);
   const decode = await jwt.verify(token, process.env.SecretKey);
