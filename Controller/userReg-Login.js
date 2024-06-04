@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const joi = require('joi');
 const createError = require('http-errors');
+const { patch } = require("../Routes/User");
 
 // ......................User Registeration............................
 
@@ -71,13 +72,15 @@ const userLogin = async (req, res) => {
   res.cookie("token", accessToken, {
     expires: new Date(Date.now() + 10 * 60 * 1000),
     httpOnly: true,
-    sameSite: "Strict"
+    sameSite: "Strict",
+    path: '/'
   });
 
   res.cookie("refreshToken", refreshToken, {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: "Strict"
+    sameSite: "Strict",
+    path: '/',
   });
   res.status(200).send("Logged in successfully");
 };
