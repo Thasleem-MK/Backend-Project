@@ -12,7 +12,7 @@ const userProfile = async (req, res) => {
   const { token } = req.cookies;
   const decode = await jwt.verify(token, process.env.SecretKey);
   console.log(decode);
-  const user = await userSchema.findById(decode.userId);
+  const user = await userSchema.findById(decode.email);
   return res.status(200).json({
     status: "Success", data: user
   });
