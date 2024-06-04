@@ -10,7 +10,8 @@ const stripeID = require('stripe')("sk_test_51P5UXZSBDzdy1QTWpNIKtArSEQbiMZjfYDY
 //............... User Profile .....................
 const userProfile = async (req, res) => {
   const { token } = req.cookies;
-  const decode = jwt.verify(token, process.env.SecretKey);
+  const decode = await jwt.verify(token, process.env.SecretKey);
+  console.log(decode);
   const user = await userSchema.findById(decode.userId);
   return res.status(200).json({
     status: "Success", data: user

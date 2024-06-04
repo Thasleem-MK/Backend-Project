@@ -48,7 +48,6 @@ const userLogin = async (req, res) => {
   const data = req.body;
   const user = await userSchema.findOne({ email: data.email }
   );
-  console.log(user);
   if (!user) {
     throw new createError.NotFound("User not found. Please check your email.");
   }
