@@ -46,9 +46,8 @@ const userRegister = async (req, res) => {
 
 const userLogin = async (req, res) => {
   const data = req.body;
-  const user = await userSchema.findOne({
-    $or: [{ userName: data.userId }, { email: data.userId }],
-  });
+  const user = await userSchema.findOne({ email: data.email }
+  );
   if (!user) {
     throw new createError.NotFound("User not found. Please check your username or email.");
   }
@@ -56,13 +55,13 @@ const userLogin = async (req, res) => {
   if (!isPasswordMatch) { throw new createError.BadRequest("Incorrect password. Please try again.") }
   const key = process.env.SecretKey;
   const accessToken = jwt.sign(
-    { userId: user._id, userName: user.userName },
+    { userId: user._id, email: user.email },
     key,
     {
       expiresIn: "10m",
     }
   );
-  const refreshToken = jwt.sign({ userId: user._id, userName: user.userName },
+  const refreshToken = jwt.sign({ userId: user._id, email: user.email },
     process.env.RefreshTokenSecret,
     {
       expiresIn: "7d",
@@ -70,7 +69,7 @@ const userLogin = async (req, res) => {
   res.cookie("token", accessToken, {
     expires: new Date(Date.now() + 60 * 10 * 1000)
   });
-  
+
   res.cookie("refreshToken", refreshToken, { maxAge: 7 * 24 * 60 * 60 * 1000 });
   res.status(200).send("Logged in successfully");
 };
@@ -83,7 +82,7 @@ const refresh = async (req, res) => {
   }
   const decoded = jwt.verify(refreshToken, process.env.RefreshTokenSecret);
   const accessToken = jwt.sign(
-    { userId: decoded.userId, userName: decoded.userName },
+    { userId: decoded.userId, email: decoded.email },
     process.env.SecretKey,
     {
       expiresIn: "10m",
