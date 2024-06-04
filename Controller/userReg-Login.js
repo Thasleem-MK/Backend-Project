@@ -69,10 +69,16 @@ const userLogin = async (req, res) => {
       expiresIn: "7d",
     })
   res.cookie("token", accessToken, {
-    expires: new Date(Date.now() + 60 * 10 * 1000)
+    expires: new Date(Date.now() + 10 * 60 * 1000),
+    httpOnly: true,
+    sameSite: "Strict"
   });
 
-  res.cookie("refreshToken", refreshToken, { maxAge: 7 * 24 * 60 * 60 * 1000 });
+  res.cookie("refreshToken", refreshToken, {
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    sameSite: "Strict"
+  });
   res.status(200).send("Logged in successfully");
 };
 
