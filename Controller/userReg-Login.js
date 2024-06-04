@@ -49,7 +49,7 @@ const userLogin = async (req, res) => {
   const user = await userSchema.findOne({ email: data.email }
   );
   if (!user) {
-    throw new createError.NotFound("User not found. Please check your username or email.");
+    throw new createError.NotFound("User not found. Please check your username email.");
   }
   const isPasswordMatch = await bcrypt.compare(data.password, user.password);
   if (!isPasswordMatch) { throw new createError.BadRequest("Incorrect password. Please try again.") }
