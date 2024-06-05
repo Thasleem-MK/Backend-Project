@@ -7,6 +7,7 @@ const { trycatch } = require("../utils/tryCatch")
 //.............. User Authentication ........................
 const userAuthentication = trycatch(async (req, res, next) => {
   console.log("User Authentication");
+  console.log("Cookie:", req.cookies);
   const { token } = req.cookies;
   console.log(token);
   if (!token) {

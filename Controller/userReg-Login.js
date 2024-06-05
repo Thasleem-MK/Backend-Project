@@ -73,6 +73,7 @@ const userLogin = async (req, res) => {
     expires: new Date(Date.now() + 10 * 60 * 1000),
     httpOnly: true,
     sameSite: "Strict",
+    secure: true,
     path: '/'
   });
 
@@ -80,6 +81,7 @@ const userLogin = async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: "Strict",
+    secure: true,
     path: '/',
   });
   res.status(200).send("Logged in successfully");
