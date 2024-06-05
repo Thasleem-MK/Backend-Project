@@ -72,7 +72,7 @@ const userLogin = async (req, res) => {
   res.cookie("token", accessToken, {
     expires: new Date(Date.now() + 10 * 60 * 1000),
     httpOnly: true,
-    sameSite: "Strict",
+    sameSite: "Lax",
     secure: true,
     path: '/'
   });
@@ -80,7 +80,7 @@ const userLogin = async (req, res) => {
   res.cookie("refreshToken", refreshToken, {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: "Strict",
+    sameSite: "Lax",
     secure: true,
     path: '/',
   });
