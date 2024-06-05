@@ -11,7 +11,7 @@ const app = express();
 
 dotenv.config({ path: "./config/.env" });
 app.use(cors({
-  origin: "https://plashoe-ecru.vercel.app",
+  origin: "http://localhost:3000",  
   credentials: true
 }));
 
@@ -20,7 +20,6 @@ app.use(cookie_Parser());
 
 app.use("/api", adminRoute);
 app.use("/api", usersRoute);
-
 
 
 dbConnect();

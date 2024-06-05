@@ -11,10 +11,8 @@ const stripeID = require('stripe')("sk_test_51P5UXZSBDzdy1QTWpNIKtArSEQbiMZjfYDY
 const userProfile = async (req, res) => {
   console.log("User Profile");
   const { token } = req.cookies;
-  console.log(token);
   const decode = await jwt.verify(token, process.env.SecretKey);
-  console.log(decode);
-  const user = await userSchema.findById(decode.email);
+  const user = await userSchema.findById(decode.userId);
   return res.status(200).json({
     status: "Success", data: user
   });
@@ -23,7 +21,6 @@ const userProfile = async (req, res) => {
 //............ show products to users ...............
 const userProducts = async (req, res) => {
   console.log("User Product");
-  // console.log(req.cookies);
   const data = await productSchema.find({}, "-__v");
   if (!data) throw new createError.NotFound("No product in store")
   res.status(200).send(data);
@@ -88,7 +85,7 @@ const addCartItems = async (req, res) => {
 
 //................ Read the cart .............................
 const readCart = async (req, res) => {
-  console.log("readCart");
+  console.log("Read cart");
   const { token } = req.cookies;
   const decode = jwt.verify(token, process.env.SecretKey);
   const user = await cartSchema.findOne({ userId: decode.userId }).populate("cart.product");

@@ -51,38 +51,32 @@ const userLogin = async (req, res) => {
   const data = req.body;
   const user = await userSchema.findOne({ email: data.email }
   );
+
   if (!user) {
     throw new createError.NotFound("User not found. Please check your email.");
   }
   const isPasswordMatch = await bcrypt.compare(data.password, user.password);
   if (!isPasswordMatch) { throw new createError.BadRequest("Incorrect password. Please try again.") }
   const key = process.env.SecretKey;
-  const accessToken = jwt.sign(
+  const accessToken = await jwt.sign(
     { userId: user._id, email: user.email },
     key,
     {
       expiresIn: "10m",
     }
   );
-  const refreshToken = jwt.sign({ userId: user._id, email: user.email },
+  const refreshToken = await jwt.sign({ userId: user._id, email: user.email },
     process.env.RefreshTokenSecret,
     {
       expiresIn: "7d",
     })
   res.cookie("token", accessToken, {
     expires: new Date(Date.now() + 10 * 60 * 1000),
-    httpOnly: true,
-    sameSite: "Lax",
     secure: true,
-    path: '/'
   });
-
   res.cookie("refreshToken", refreshToken, {
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    httpOnly: true,
-    sameSite: "Lax",
     secure: true,
-    path: '/',
   });
   res.status(200).send("Logged in successfully");
 };

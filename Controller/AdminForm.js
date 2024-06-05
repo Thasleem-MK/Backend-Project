@@ -105,9 +105,12 @@ const getproduct = async (req, res) => {
 
 //....... Add product ..................
 const addProduct = async (req, res, next) => {
+
   try {
     const data = req.body;
-    data.image = req.cloudinaryImageUrl;
+    console.log("Add product", data);
+    if (req.cloudinaryImageUrl) { data.image = req.cloudinaryImageUrl };
+    // data.image = req.cloudinaryImageUrl;
     const validate = await joiSchema.validate(data);
     if (validate.error) {
       const errorMessage = validate.error.details[0].message;
@@ -119,7 +122,7 @@ const addProduct = async (req, res, next) => {
       gender: data.gender,
       category: data.category,
       price: data.price,
-      image: req.cloudinaryImageUrl,
+      image: data.image,
     });
     await newProduct.save();
     next();
@@ -215,4 +218,4 @@ const orderComplete = async (req, res) => {
 }
 
 
-module.exports = { getUsers, getUser, readCart, orders,orderComplete, getProducts, getProductCategory, getproduct, addProduct, updateProduct, deleteProduct, status, orderProducts };
+module.exports = { getUsers, getUser, readCart, orders, orderComplete, getProducts, getProductCategory, getproduct, addProduct, updateProduct, deleteProduct, status, orderProducts };

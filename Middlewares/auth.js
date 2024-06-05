@@ -6,17 +6,14 @@ const { trycatch } = require("../utils/tryCatch")
 
 //.............. User Authentication ........................
 const userAuthentication = trycatch(async (req, res, next) => {
-  console.log("User Authentication");
-  console.log("Cookie:", req.cookies);
   const { token } = req.cookies;
-  console.log(token);
   if (!token) {
     return res.redirect(`/users/refresh-token`);
   }
   const decode = await jwt.verify(token, process.env.SecretKey);
   const user = await userSchema.find({ _id: decode.userId });
   if (!user) { throw new createError.Unauthorized("Invalid token") }
-  console.log("Authenticated .")
+  console.log("Authenticated .") 
   next();
 })
 
